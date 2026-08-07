@@ -1,3 +1,4 @@
+import { useApi } from '@dejatellevar/client';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
@@ -17,13 +18,27 @@ import { PrimaryButton } from '../../components/PrimaryButton';
 import { SegmentedTabs } from '../../components/SegmentedTabs';
 import { SocialRow } from '../../components/SocialRow';
 import { TextField } from '../../components/TextField';
+import { setDevSession } from '../../lib/dev-session';
 import { colors, fontWeight, spacing, typography } from '../../lib/theme';
 
 /** P — Iniciar sesión. La autenticación real llega con el módulo de identidad. */
 export default function LoginScreen() {
   const router = useRouter();
+  const api = useApi();
   const [user, setUser] = useState('');
   const [password, setPassword] = useState('');
+
+  // Dev: obtiene una sesión demo del shim para poder escribir reseñas. Si el
+  // shim está apagado, entra igual (solo lectura).
+  const enter = async () => {
+    try {
+      const s = await api.devSession();
+      setDevSession(s.token, s.account.full_name);
+    } catch {
+      setDevSession(null, null);
+    }
+    router.replace('/modo');
+  };
 
   return (
     <View style={styles.container}>
@@ -67,10 +82,7 @@ export default function LoginScreen() {
             />
           </View>
 
-          <PrimaryButton
-            label="Iniciar sesión"
-            onPress={() => router.replace('/(tabs)/explorar')}
-          />
+          <PrimaryButton label="Iniciar sesión" onPress={enter} />
 
           <Pressable onPress={() => {}} hitSlop={8} style={styles.forgot}>
             <Text style={styles.forgotText}>¿Problemas para entrar?</Text>

@@ -5,6 +5,7 @@ import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persi
 import { onlineManager } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import { type ReactNode, useState } from 'react';
+import { getDevToken } from './dev-session';
 
 /**
  * Proveedor de datos OFFLINE de la app móvil. Reusa la config compartida de
@@ -25,7 +26,9 @@ const API_URL =
 
 export function AppOfflineProvider({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => createQueryClient());
-  const [api] = useState(() => createApiClient({ baseUrl: API_URL }));
+  const [api] = useState(() =>
+    createApiClient({ baseUrl: API_URL, getAuthToken: () => getDevToken() }),
+  );
   const [persister] = useState(() =>
     createAsyncStoragePersister({
       storage: AsyncStorage,
