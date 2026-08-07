@@ -2,16 +2,15 @@ import { getApiApp } from '@/server/api';
 import { handle } from 'hono/vercel';
 
 /**
- * Monta la API de Hono en Next (§9). Todas las rutas /api/* pasan por la misma
- * app que consumen las páginas en proceso.
+ * Monta la API de Hono en Next (§9). La app (y el cliente de BD) se construye
+ * de forma PEREZOSA dentro del handler, no al importar el módulo: así `next build`
+ * no falla cuando aún no hay DATABASE_URL en el entorno de compilación.
  */
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const app = getApiApp();
+function handler(req: Request) {
+  return handle(getApiApp())(req);
+}
 
-export const GET = handle(app);
-export const POST = handle(app);
-export const PATCH = handle(app);
-export const DELETE = handle(app);
-export const PUT = handle(app);
+export { handler as GET, handler as POST, handler as PATCH, handler as DELETE, handler as PUT };
