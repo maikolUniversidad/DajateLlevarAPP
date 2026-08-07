@@ -4,6 +4,7 @@ export * from './accessibility.js';
 export * from './common.js';
 export * from './enums.js';
 export * from './service.js';
+export * from './payment.js';
 export * from './creator.js';
 export * from './campaign.js';
 export * from './auth.js';

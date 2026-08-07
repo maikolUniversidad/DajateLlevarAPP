@@ -1,4 +1,10 @@
-import type { CampaignModel, MembershipRole, Money, PlatformRole } from '@dejatellevar/contracts';
+import type {
+  BookingStatus,
+  CampaignModel,
+  MembershipRole,
+  Money,
+  PlatformRole,
+} from '@dejatellevar/contracts';
 import type { Permission } from './authz/permissions.js';
 import type {
   Account,
@@ -13,6 +19,7 @@ import type {
   Organization,
   Service,
 } from './entities.js';
+import type { LedgerEntryDraft } from './payment-math.js';
 
 /**
  * PUERTOS — la regla de oro hecha código.
@@ -39,23 +46,47 @@ export interface StorageProvider {
   getPublicUrl(key: string): string;
 }
 
-export interface PaymentIntent {
+/** Estado normalizado de una transacción del proveedor de pago. */
+export type ProviderTxStatus = 'approved' | 'declined' | 'pending' | 'voided' | 'error';
+
+export interface ProviderTransaction {
   id: string;
-  status: 'created' | 'authorized' | 'held' | 'released' | 'failed';
+  reference: string;
+  status: ProviderTxStatus;
   amount: Money;
+  method: string | null;
 }
 
+/** Datos que el frontend necesita para abrir el checkout del proveedor (Wompi). */
+export interface CheckoutData {
+  provider: string;
+  publicKey: string;
+  reference: string;
+  amountInCents: number;
+  currency: string;
+  /** Firma de integridad SHA-256(reference+amount+currency+secret). */
+  signature: string;
+  redirectUrl?: string;
+}
+
+/**
+ * Proveedor de pagos (adaptador: Wompi). El dinero vive en la cuenta del PSP; la
+ * plataforma NUNCA lo custodia (fuera del régimen SEDPE, §5.4). El flujo es:
+ * preparar checkout → el cliente paga → el webhook confirma → se asienta el ledger.
+ */
 export interface PaymentProvider {
-  /** Crea un cobro retenido (escrow) contra una reserva. */
-  createHold(input: {
-    amount: Money;
-    reference: string;
-    method: string;
-    idempotencyKey: string;
-  }): Promise<PaymentIntent>;
-  release(paymentId: string): Promise<PaymentIntent>;
-  refund(input: { paymentId: string; amount: Money }): Promise<PaymentIntent>;
-  verifyWebhookSignature(rawBody: string, signature: string): boolean;
+  /** Prepara los datos + firma de integridad para el checkout del cliente. */
+  prepareCheckout(input: { amount: Money; reference: string; redirectUrl?: string }): CheckoutData;
+  /** Consulta el estado real de una transacción en el proveedor. */
+  getTransaction(transactionId: string): Promise<ProviderTransaction | null>;
+  /** Reembolsa una transacción (total o parcial). */
+  refund(input: { transactionId: string; amount: Money }): Promise<{ ok: boolean }>;
+  /** Verifica la firma del evento de webhook con el secreto de eventos. */
+  verifyWebhookSignature(rawEvent: unknown): boolean;
+  /** Extrae la transacción y el id de evento de un webhook ya verificado. */
+  parseWebhook(
+    rawEvent: unknown,
+  ): { providerEventId: string; transaction: ProviderTransaction } | null;
 }
 
 export interface DomainEventInput {
@@ -584,4 +615,79 @@ export interface DomainEventQueryPort {
     filters: DomainEventFilters,
     page: { cursor?: string; limit: number },
   ): Promise<Page<DomainEventRecord>>;
+}
+
+// --- Pagos y ledger (§4.6, §5.4) --------------------------------------------
+
+export interface PaymentRecord {
+  id: string;
+  bookingId: string | null;
+  organizationId: string;
+  payerAccountId: string;
+  status: string;
+  method: string | null;
+  amount: Money;
+  provider: string;
+  providerTransactionId: string | null;
+  reference: string;
+}
+
+export interface NewPaymentInput {
+  bookingId: string;
+  organizationId: string;
+  payerAccountId: string;
+  amount: Money;
+  method?: string | null;
+  provider: string;
+}
+
+export interface PaymentRepository {
+  create(input: NewPaymentInput): Promise<PaymentRecord>;
+  findById(id: string): Promise<PaymentRecord | null>;
+  findByReference(reference: string): Promise<PaymentRecord | null>;
+  /** Actualiza estado + datos del proveedor tras el checkout/webhook. */
+  markStatus(input: {
+    id: string;
+    status: string;
+    providerTransactionId?: string | null;
+    method?: string | null;
+    heldAt?: Date | null;
+  }): Promise<void>;
+}
+
+export interface LedgerRepository {
+  /** ¿Ya existe esa transacción? (idempotencia del ledger). */
+  hasTransaction(transactionId: string): Promise<boolean>;
+  /** Asienta una transacción completa (append-only). Debe cuadrar. */
+  recordTransaction(transactionId: string, entries: LedgerEntryDraft[]): Promise<void>;
+}
+
+/** Idempotencia de webhooks del PSP (§4.6, tabla payment_webhook_event). */
+export interface PaymentWebhookStore {
+  /** Registra el evento; devuelve false si ya se había recibido (repetido). */
+  claim(input: {
+    provider: string;
+    providerEventId: string;
+    eventType: string;
+    signatureValid: boolean;
+    payload: Record<string, unknown>;
+  }): Promise<boolean>;
+  markProcessed(providerEventId: string, error?: string | null): Promise<void>;
+}
+
+export interface BookingForPayment {
+  id: string;
+  code: string;
+  organizationId: string;
+  clientAccountId: string;
+  totalAmount: Money;
+  status: BookingStatus;
+  commissionRate: number;
+}
+
+/** Vista/actualización de reservas que necesita el módulo de pagos. */
+export interface PaymentBookingRepository {
+  findByCode(code: string): Promise<BookingForPayment | null>;
+  findById(id: string): Promise<BookingForPayment | null>;
+  setStatus(id: string, status: BookingStatus, at: Date): Promise<void>;
 }

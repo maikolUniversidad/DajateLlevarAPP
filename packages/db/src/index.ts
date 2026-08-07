@@ -16,6 +16,7 @@ export {
   makeDataSubjectRequestRepository,
 } from './identity-repositories.js';
 export { makeCreatorRepository, makeMembershipRepository } from './profile-repositories.js';
+export { makeCampaignRepository, makeCampaignQueries } from './campaign-repositories.js';
 export { makeCreatorContentRepository } from './creator-content-repositories.js';
 export {
   makePlatformStaffRepository,
@@ -23,9 +24,16 @@ export {
   makeDomainEventQuery,
 } from './admin-repositories.js';
 export {
+  makePaymentRepository,
+  makeLedgerRepository,
+  makePaymentWebhookStore,
+  makePaymentBookingRepository,
+} from './payment-repositories.js';
+export {
   createSupabaseAuthProvider,
   type SupabaseAuthConfig,
 } from './adapters/supabase-auth.js';
+export { createWompiPaymentProvider, type WompiConfig } from './adapters/wompi.js';
 export {
   makeStubContentScraper,
   makeStubTranscriber,

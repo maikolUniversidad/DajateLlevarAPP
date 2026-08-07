@@ -1,6 +1,12 @@
 import 'server-only';
 import { type ApiApp, createApiApp } from '@dejatellevar/api';
-import { type DbClient, createDbClient, createSupabaseAuthProvider } from '@dejatellevar/db';
+import type { PaymentProvider } from '@dejatellevar/core';
+import {
+  type DbClient,
+  createDbClient,
+  createSupabaseAuthProvider,
+  createWompiPaymentProvider,
+} from '@dejatellevar/db';
 
 /**
  * Instancia única del cliente de BD y de la app de API para el servidor de Next.
@@ -31,7 +37,19 @@ export function getApiApp(): ApiApp {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
         '',
     });
-    globalThis.__dl_api = createApiApp({ db: getDb(), auth });
+    // Wompi: solo si hay claves configuradas; si no, los pagos responden 503.
+    let payment: PaymentProvider | undefined;
+    try {
+      payment = createWompiPaymentProvider({
+        publicKey: process.env.WOMPI_PUBLIC_KEY ?? '',
+        privateKey: process.env.WOMPI_PRIVATE_KEY ?? '',
+        integritySecret: process.env.WOMPI_INTEGRITY_SECRET ?? '',
+        eventsSecret: process.env.WOMPI_EVENTS_SECRET ?? '',
+      });
+    } catch {
+      payment = undefined;
+    }
+    globalThis.__dl_api = createApiApp({ db: getDb(), auth, payment });
   }
   return globalThis.__dl_api;
 }

@@ -567,3 +567,83 @@ export const domainEvent = pgTable('domain_event', {
   version: integer('version').notNull().default(1),
   occurredAt: ts('occurred_at').notNull().defaultNow(),
 });
+
+// --- Campañas y contratación de creadores (§12) -----------------------------
+export const campaignStatus = pgEnum('campaign_status', [
+  'draft',
+  'open',
+  'matching',
+  'negotiating',
+  'contracted',
+  'in_production',
+  'in_review',
+  'published',
+  'completed',
+  'cancelled',
+  'disputed',
+]);
+export const campaignModel = pgEnum('campaign_model', ['affiliate', 'fixed_fee', 'hybrid']);
+export const applicationStatus = pgEnum('application_status', [
+  'submitted',
+  'shortlisted',
+  'rejected',
+  'accepted',
+  'withdrawn',
+]);
+
+export const campaign = pgTable('campaign', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: uuid('organization_id').notNull(),
+  code: varchar('code', { length: 12 }).notNull(),
+  name: varchar('name', { length: 160 }).notNull(),
+  status: campaignStatus('status').notNull().default('draft'),
+  model: campaignModel('model').notNull().default('affiliate'),
+  objective: text('objective').notNull(),
+  targetAudience: text('target_audience'),
+  keyMessages: text('key_messages'),
+  doNotMention: text('do_not_mention'),
+  referenceUrls: text('reference_urls').array(),
+  serviceIds: uuid('service_ids').array().notNull().default(sql`'{}'`),
+  targetCities: text('target_cities').array(),
+  targetCategories: text('target_categories').array(),
+  budgetTotal: bigint('budget_total', { mode: 'number' }),
+  feePerCreator: bigint('fee_per_creator', { mode: 'number' }),
+  commissionRate: numeric('commission_rate', { precision: 5, scale: 4 }),
+  currency: char('currency', { length: 3 }).notNull().default('COP'),
+  contentLicense: varchar('content_license', { length: 40 }).notNull().default('organic_only'),
+  licenseDurationDays: integer('license_duration_days'),
+  exclusivityDays: integer('exclusivity_days').notNull().default(0),
+  applicationsCloseAt: ts('applications_close_at'),
+  contentDueAt: ts('content_due_at'),
+  totalReach: integer('total_reach').notNull().default(0),
+  attributedBookings: integer('attributed_bookings').notNull().default(0),
+  attributedGmv: bigint('attributed_gmv', { mode: 'number' }).notNull().default(0),
+  roas: numeric('roas', { precision: 8, scale: 2 }),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+export const campaignApplication = pgTable('campaign_application', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: uuid('campaign_id').notNull(),
+  creatorProfileId: uuid('creator_profile_id').notNull(),
+  status: applicationStatus('status').notNull().default('submitted'),
+  isInvitation: boolean('is_invitation').notNull().default(false),
+  pitch: text('pitch'),
+  proposedFee: bigint('proposed_fee', { mode: 'number' }),
+  matchScore: numeric('match_score', { precision: 5, scale: 4 }),
+  respondedAt: ts('responded_at'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+// --- Idempotencia de webhooks del PSP (§4.6) --------------------------------
+export const paymentWebhookEvent = pgTable('payment_webhook_event', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  provider: varchar('provider', { length: 30 }).notNull(),
+  providerEventId: varchar('provider_event_id', { length: 160 }).notNull(),
+  eventType: varchar('event_type', { length: 80 }).notNull(),
+  signatureValid: boolean('signature_valid').notNull(),
+  payload: jsonb('payload').notNull(),
+  processedAt: ts('processed_at'),
+  processingError: text('processing_error'),
+  receivedAt: ts('received_at').notNull().defaultNow(),
+});

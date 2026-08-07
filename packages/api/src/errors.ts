@@ -33,6 +33,11 @@ const DOMAIN_STATUS: Record<string, ContentfulStatusCode> = {
   CONSENT_REQUIRED: 422,
   POLICY_NOT_CONFIGURED: 422,
   SCRAPING_FAILED: 502,
+  ORGANIZATION_NOT_FOUND: 404,
+  CAMPAIGN_NOT_FOUND: 404,
+  NOT_CAMPAIGN_OWNER: 403,
+  CREATOR_NOT_ACCEPTING: 409,
+  ALREADY_INVITED: 409,
 };
 
 export function domainStatus(code: string): ContentfulStatusCode {

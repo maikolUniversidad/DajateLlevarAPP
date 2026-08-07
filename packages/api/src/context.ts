@@ -1,5 +1,5 @@
 import type { Permission, PlatformRole } from '@dejatellevar/contracts';
-import type { AuthProvider } from '@dejatellevar/core';
+import type { AuthProvider, PaymentProvider } from '@dejatellevar/core';
 import type { DbClient } from '@dejatellevar/db';
 
 /**
@@ -9,6 +9,8 @@ import type { DbClient } from '@dejatellevar/db';
 export interface ApiDeps {
   db: DbClient;
   auth: AuthProvider;
+  /** Proveedor de pagos (Wompi). Ausente si no hay claves configuradas. */
+  payment?: PaymentProvider;
 }
 
 /** Variables por request que fijan los middlewares. */
