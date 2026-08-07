@@ -157,6 +157,7 @@ export function createLLMProvider(options: CreateLLMProviderOptions = {}): LLMPr
 }
 
 export { createContentAnalyzer } from './content-analyzer.js';
+export { createWhisperTranscriber } from './whisper-transcriber.js';
 
 let cached: LLMProvider | null = null;
 

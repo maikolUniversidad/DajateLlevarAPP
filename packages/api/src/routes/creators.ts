@@ -1,4 +1,4 @@
-import { createContentAnalyzer } from '@dejatellevar/ai';
+import { createContentAnalyzer, createWhisperTranscriber } from '@dejatellevar/ai';
 import { RegisterCreatorSchema } from '@dejatellevar/contracts';
 import type {
   ContentAnalyzer,
@@ -6,6 +6,7 @@ import type {
   CreatorContentItem,
   CreatorProfile,
   CreatorSocialLink,
+  TranscriptionProvider,
 } from '@dejatellevar/core';
 import {
   activateCreatorProfile,
@@ -127,9 +128,15 @@ export function creatorRoutes(deps: ApiDeps) {
   const policies = makePolicyVersionRepository(db);
   const consents = makeConsentRepository(db);
   const events = makeEventPublisher(db);
-  // Scraping y transcripción siguen en STUB (son integraciones externas aparte).
+  // Scraping sigue en STUB (raspar redes es una integración externa aparte).
   const scraper = makeStubContentScraper();
-  const transcriber = makeStubTranscriber();
+  // TRANSCRIPCIÓN con Whisper de OpenAI. Sin OPENAI_API_KEY, cae al stub.
+  let transcriber: TranscriptionProvider;
+  try {
+    transcriber = createWhisperTranscriber();
+  } catch {
+    transcriber = makeStubTranscriber();
+  }
   // CLASIFICACIÓN con IA REAL (DeepSeek/OpenAI vía @dejatellevar/ai). Si no hay
   // clave configurada en el entorno, cae al stub para no romper el flujo.
   let analyzer: ContentAnalyzer;
