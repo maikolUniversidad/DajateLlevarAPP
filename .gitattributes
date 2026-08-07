@@ -1,0 +1,8 @@
+# Normaliza saltos de línea: LF en el repositorio, CRLF en checkout de Windows.
+* text=auto eol=lf
+
+# Binarios y lockfiles: sin conversión.
+pnpm-lock.yaml -text
+*.png binary
+*.jpg binary
+*.ico binary

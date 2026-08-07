@@ -1,0 +1,39 @@
+{
+  "name": "dejatellevar",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sistema operativo comercial para servicios y creadores — Villavicencio, Meta, Colombia",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=@dejatellevar/web",
+    "dev:mobile": "turbo run dev --filter=@dejatellevar/mobile",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "typecheck": "turbo run typecheck",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "db:local": "docker compose up -d db",
+    "db:migrate": "pnpm --filter @dejatellevar/db migrate",
+    "db:seed": "pnpm --filter @dejatellevar/db seed",
+    "db:studio": "pnpm --filter @dejatellevar/db studio",
+    "db:reset": "pnpm --filter @dejatellevar/db reset",
+    "prepare": "lefthook install || true"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "lefthook": "1.10.10",
+    "turbo": "2.3.3",
+    "typescript": "5.7.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.0.7",
+      "@types/react-dom": "19.0.3"
+    }
+  }
+}

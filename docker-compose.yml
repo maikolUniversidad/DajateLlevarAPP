@@ -1,0 +1,25 @@
+# Postgres 16 con pgvector para desarrollar sin depender de Supabase.
+# Levantar: pnpm db:local  (o: docker compose up -d db)
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: dejatellevar_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dejatellevar
+      # America/Bogota; almacenamiento en UTC de todas formas.
+      TZ: America/Bogota
+    ports:
+      - "5432:5432"
+    volumes:
+      - dejatellevar_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dejatellevar"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  dejatellevar_pgdata:

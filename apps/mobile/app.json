@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "DéjateLlevar",
+    "slug": "dejatellevar",
+    "scheme": "dejatellevar",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "plugins": ["expo-router"],
+    "ios": { "supportsTablet": true },
+    "android": { "package": "com.dejatellevar.app" },
+    "extra": {
+      "apiUrl": "http://localhost:3000/api"
+    }
+  }
+}

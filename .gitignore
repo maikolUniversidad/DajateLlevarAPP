@@ -1,0 +1,44 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+
+# Build
+dist/
+build/
+.next/
+out/
+.turbo/
+.expo/
+web-build/
+*.tsbuildinfo
+
+# Entorno — NUNCA subir secretos
+.env
+.env.*
+!.env.example
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Pruebas
+coverage/
+playwright-report/
+test-results/
+
+# Drizzle
+packages/db/drizzle/meta/_journal_local.json
