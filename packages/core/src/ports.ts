@@ -194,8 +194,12 @@ export interface NewOrganizationInput {
   tradeName: string;
   taxId: string;
   tourismRegistry?: string | null;
-  /** Gremio / sector del negocio (p. ej. restaurante, hotel, spa). */
+  /** Gremio / sector PRINCIPAL del negocio (p. ej. restaurante, hotel, spa). */
   sector?: string | null;
+  /** Gremios / sectores del negocio (se pueden elegir varios). */
+  sectors?: string[];
+  /** Gremio personalizado escrito por el usuario si no está en la lista. */
+  customSector?: string | null;
   email: string;
   phone: string;
   city: string;
@@ -348,6 +352,12 @@ export interface NewCreatorProfileInput {
   bio?: string | null;
   categories: string[];
   cities: string[];
+  /** Estilo(s) de contenido declarados (cómo describe lo que hace). */
+  contentStyles?: string[];
+  /** Formatos que produce (reel, video largo, en vivo…). */
+  formats?: string[];
+  /** Audiencia declarada (segmentación descriptiva; NO métricas calculadas). */
+  declaredAudience?: Record<string, unknown> | null;
 }
 
 export interface CreatorRepository {

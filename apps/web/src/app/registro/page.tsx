@@ -20,7 +20,8 @@ import {
   AUDIENCE_SCOPES,
   CONTENT_CATEGORIES,
   CONTENT_FORMATS,
-  CREATOR_TYPES,
+  CONTENT_STYLE_LABELS,
+  searchContentStyles,
 } from '@/lib/creator-options';
 import { detectNetwork } from '@/lib/social-networks';
 import { Button } from '@dejatellevar/ui';
@@ -71,7 +72,7 @@ export default function RegistroPage() {
   const [creatorCities, setCreatorCities] = useState<string[]>([]);
   const [socialLinks, setSocialLinks] = useState<SocialLinkRow[]>([emptySocialLink()]);
   // Audiencia y estilo (para el matching con marcas)
-  const [creatorType, setCreatorType] = useState('');
+  const [creatorTypes, setCreatorTypes] = useState<string[]>([]);
   const [formats, setFormats] = useState<string[]>([]);
   const [audienceAges, setAudienceAges] = useState<string[]>([]);
   const [audienceGender, setAudienceGender] = useState('');
@@ -158,7 +159,8 @@ export default function RegistroPage() {
           social_links: socialLinks
             .map((r) => ({ url: r.url.trim(), network: r.network || detectNetwork(r.url) }))
             .filter((l) => l.network),
-          creator_type: creatorType || undefined,
+          creator_type: creatorTypes[0] ?? undefined,
+          creator_types: creatorTypes,
           formats,
           audience: {
             age_ranges: audienceAges,
@@ -384,8 +386,8 @@ export default function RegistroPage() {
               values={creatorCities}
               onChange={setCreatorCities}
               allowCustom={false}
-              max={20}
-              placeholder="Busca tus ciudades"
+              max={30}
+              placeholder="Busca entre todas las ciudades del país"
             />
             <Field label="Bio (opcional)">
               <textarea
@@ -402,12 +404,14 @@ export default function RegistroPage() {
                 Ayuda a las marcas a encontrarte y decidir a quién pautar o contratar.
               </p>
             </div>
-            <Combobox
-              label="Tipo de creador"
-              options={CREATOR_TYPES}
-              value={creatorType}
-              onChange={setCreatorType}
-              placeholder="¿Cómo describes tu contenido?"
+            <MultiCombobox
+              label="¿Cómo describes tu contenido? (elige uno o varios)"
+              options={CONTENT_STYLE_LABELS}
+              values={creatorTypes}
+              onChange={setCreatorTypes}
+              filter={searchContentStyles}
+              max={12}
+              placeholder="Busca (tutoriales, reseñas, humor, vlogs…) o agrega el tuyo"
             />
             <ChipMultiSelect
               label="Formatos que produces"

@@ -69,7 +69,9 @@ export const RegisterCreatorInlineSchema = z.object({
     .array(z.object({ url: z.string().url('URL inválida'), network: z.string() }))
     .min(1, 'Agrega al menos un enlace de red social'),
   // Estilo y audiencia (para el matching con marcas). Descriptivo, no métrico.
-  creator_type: z.string().max(60).optional(),
+  // creator_type = principal (derivado); creator_types = varios estilos elegidos.
+  creator_type: z.string().max(80).optional(),
+  creator_types: z.array(z.string().max(80)).max(12).default([]),
   formats: z.array(z.string().max(60)).max(20).default([]),
   audience: CreatorAudienceInlineSchema.optional(),
 });

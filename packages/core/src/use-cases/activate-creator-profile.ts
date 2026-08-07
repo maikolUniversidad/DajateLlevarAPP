@@ -9,6 +9,12 @@ export interface ActivateCreatorProfileInput {
   bio?: string | null;
   categories: string[];
   cities: string[];
+  /** Estilo(s) de contenido (cómo describe lo que hace). */
+  contentStyles?: string[];
+  /** Formatos que produce. */
+  formats?: string[];
+  /** Audiencia declarada (segmentación descriptiva para el matching). */
+  declaredAudience?: Record<string, unknown> | null;
 }
 
 export interface ActivateCreatorProfileDeps {
@@ -54,6 +60,9 @@ export async function activateCreatorProfile(
     bio: input.bio ?? null,
     categories: input.categories,
     cities: input.cities,
+    contentStyles: input.contentStyles ?? [],
+    formats: input.formats ?? [],
+    declaredAudience: input.declaredAudience ?? {},
   });
 
   await events.publish({

@@ -111,6 +111,8 @@ export function authRoutes(deps: ApiDeps) {
           taxId: body.business.tax_id,
           tourismRegistry: body.business.tourism_registry ?? null,
           sector: body.business.sector ?? null,
+          sectors: body.business.sectors,
+          customSector: body.business.custom_sector ?? null,
           email: body.business.email ?? null,
           phone: body.business.phone,
           city: body.business.city,
@@ -138,6 +140,9 @@ export function authRoutes(deps: ApiDeps) {
           bio: body.creator.bio ?? null,
           categories: body.creator.categories,
           cities: body.creator.cities,
+          contentStyles: body.creator.creator_types,
+          formats: body.creator.formats,
+          declaredAudience: body.creator.audience ?? {},
         },
       );
       if (!activated.ok) {

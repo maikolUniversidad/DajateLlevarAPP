@@ -70,6 +70,9 @@ export function makeCreatorRepository(db: DbClient): CreatorRepository {
           bio: input.bio ?? null,
           categories: input.categories,
           cities: input.cities,
+          contentStyles: input.contentStyles ?? [],
+          formats: input.formats ?? [],
+          declaredAudience: input.declaredAudience ?? {},
         })
         .returning();
       return mapCreator(inserted[0]!);

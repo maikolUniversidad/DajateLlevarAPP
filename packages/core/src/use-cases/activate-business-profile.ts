@@ -14,8 +14,12 @@ export interface ActivateBusinessProfileInput {
   tradeName: string;
   taxId: string;
   tourismRegistry?: string | null;
-  /** Gremio / sector del negocio (p. ej. restaurante, hotel, spa). */
+  /** Gremio / sector principal del negocio (p. ej. restaurante, hotel, spa). */
   sector?: string | null;
+  /** Gremios / sectores (se pueden elegir varios). */
+  sectors?: string[];
+  /** Gremio personalizado si no está en la lista. */
+  customSector?: string | null;
   /** Correo de la empresa; si no se envía, se usa el de la cuenta. */
   email?: string | null;
   phone: string;
@@ -74,6 +78,8 @@ export async function activateBusinessProfile(
     taxId: input.taxId,
     tourismRegistry: input.tourismRegistry ?? null,
     sector: input.sector ?? null,
+    sectors: input.sectors ?? [],
+    customSector: input.customSector ?? null,
     email: input.email ?? account.email,
     phone: input.phone,
     city: input.city,

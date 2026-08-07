@@ -118,6 +118,8 @@ export function makeOrganizationRepository(db: DbClient): OrganizationRepository
             taxId: input.taxId,
             tourismRegistry: input.tourismRegistry ?? null,
             sector: input.sector ?? null,
+            sectors: input.sectors ?? [],
+            customSector: input.customSector ?? null,
             email: input.email,
             phone: input.phone,
             city: input.city,
