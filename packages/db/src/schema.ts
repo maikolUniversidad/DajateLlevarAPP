@@ -91,6 +91,23 @@ export const paymentStatus = pgEnum('payment_status', [
   'reversed',
 ]);
 
+export const verificationLevel = pgEnum('verification_level', [
+  'l0_email',
+  'l1_phone',
+  'l2_document',
+  'l3_tax_id',
+  'l4_tourism',
+  'l5_insurance',
+]);
+export const consentPurpose = pgEnum('consent_purpose', [
+  'terms',
+  'privacy',
+  'marketing',
+  'sensitive_accessibility',
+  'ai_processing',
+  'data_sharing',
+]);
+
 // --- Identidad --------------------------------------------------------------
 export const account = pgTable('account', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
@@ -100,15 +117,69 @@ export const account = pgTable('account', {
   phoneVerifiedAt: ts('phone_verified_at'),
   fullName: varchar('full_name', { length: 160 }).notNull(),
   displayName: varchar('display_name', { length: 80 }),
+  avatarUrl: text('avatar_url'),
+  birthDate: date('birth_date'),
   documentType: varchar('document_type', { length: 20 }),
   documentNumber: varchar('document_number', { length: 40 }),
   documentVerifiedAt: ts('document_verified_at'),
   city: varchar('city', { length: 80 }),
   department: varchar('department', { length: 80 }),
   country: char('country', { length: 2 }).notNull().default('CO'),
+  locale: varchar('locale', { length: 10 }).notNull().default('es-CO'),
+  timezone: varchar('timezone', { length: 50 }).notNull().default('America/Bogota'),
+  verificationLevel: verificationLevel('verification_level').notNull().default('l0_email'),
+  externalAuthId: text('external_auth_id'),
+  lastLoginAt: ts('last_login_at'),
   createdAt: ts('created_at').notNull().defaultNow(),
   updatedAt: ts('updated_at').notNull().defaultNow(),
   deletedAt: ts('deleted_at'),
+});
+
+export const clientProfile = pgTable('client_profile', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  accountId: uuid('account_id').notNull(),
+  preferences: jsonb('preferences').notNull().default({}),
+  accessibilityNeeds: jsonb('accessibility_needs'),
+  totalBookings: integer('total_bookings').notNull().default(0),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+});
+
+// --- Cumplimiento y consentimiento (Ley 1581) -------------------------------
+export const policyVersion = pgTable('policy_version', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  purpose: consentPurpose('purpose').notNull(),
+  version: varchar('version', { length: 20 }).notNull(),
+  contentUrl: text('content_url').notNull(),
+  contentHash: varchar('content_hash', { length: 64 }).notNull(),
+  effectiveFrom: ts('effective_from').notNull(),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+export const consent = pgTable('consent', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  accountId: uuid('account_id').notNull(),
+  policyVersionId: uuid('policy_version_id').notNull(),
+  purpose: consentPurpose('purpose').notNull(),
+  granted: boolean('granted').notNull(),
+  grantedAt: ts('granted_at').notNull().defaultNow(),
+  revokedAt: ts('revoked_at'),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+export const dataSubjectRequest = pgTable('data_subject_request', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  accountId: uuid('account_id').notNull(),
+  kind: varchar('kind', { length: 30 }).notNull(),
+  status: varchar('status', { length: 30 }).notNull().default('received'),
+  requestedAt: ts('requested_at').notNull().defaultNow(),
+  resolvedAt: ts('resolved_at'),
+  resultUrl: text('result_url'),
+  notes: text('notes'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
 });
 
 export const organization = pgTable('organization', {

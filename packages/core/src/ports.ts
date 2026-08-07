@@ -10,9 +10,10 @@ import type { Account, Booking, Organization, Service } from './entities.js';
 // --- Proveedores externos ---------------------------------------------------
 
 export interface AuthProvider {
-  verifyToken(token: string): Promise<{ accountId: string } | null>;
+  /** Devuelve el id del usuario en el proveedor externo (no nuestro account.id). */
+  verifyToken(token: string): Promise<{ externalUserId: string } | null>;
   createUser(input: { email: string; password: string; fullName: string }): Promise<{
-    accountId: string;
+    externalUserId: string;
   }>;
   signIn(input: { email: string; password: string }): Promise<{ token: string } | null>;
 }
@@ -88,8 +89,88 @@ export interface OrganizationRepository {
   findById(id: string): Promise<Organization | null>;
 }
 
+export interface NewAccountInput {
+  email: string;
+  fullName: string;
+  phone?: string | null;
+  externalAuthId: string;
+}
+
+export interface AccountUpdate {
+  fullName?: string;
+  displayName?: string | null;
+  phone?: string | null;
+  city?: string | null;
+  department?: string | null;
+}
+
 export interface AccountRepository {
   findById(id: string): Promise<Account | null>;
+  findByExternalAuthId(externalAuthId: string): Promise<Account | null>;
+  findByEmail(email: string): Promise<Account | null>;
+  /** Crea la cuenta y su perfil de cliente (siempre activo). */
+  create(input: NewAccountInput): Promise<Account>;
+  update(id: string, patch: AccountUpdate): Promise<Account>;
+  /** Baja lógica de la cuenta (derecho de supresión, Ley 1581). */
+  softDelete(id: string): Promise<void>;
+}
+
+// --- Consentimiento y cumplimiento (Ley 1581 de 2012) -----------------------
+
+export type ConsentPurpose =
+  | 'terms'
+  | 'privacy'
+  | 'marketing'
+  | 'sensitive_accessibility'
+  | 'ai_processing'
+  | 'data_sharing';
+
+export interface PolicyVersion {
+  id: string;
+  purpose: ConsentPurpose;
+  version: string;
+  contentUrl: string;
+  contentHash: string;
+}
+
+export interface ConsentState {
+  purpose: ConsentPurpose;
+  granted: boolean;
+  grantedAt: Date | null;
+  revokedAt: Date | null;
+  policyVersion: string;
+}
+
+/** Contexto probatorio del consentimiento: un booleano no basta (Ley 1581). */
+export interface ConsentEvidence {
+  ipAddress?: string | null;
+  userAgent?: string | null;
+}
+
+export interface PolicyVersionRepository {
+  /** Última versión vigente de una política por propósito. */
+  latestFor(purpose: ConsentPurpose): Promise<PolicyVersion | null>;
+}
+
+export interface ConsentRepository {
+  /** Registra un asiento de consentimiento (append: cada cambio es un registro). */
+  record(input: {
+    accountId: string;
+    policyVersionId: string;
+    purpose: ConsentPurpose;
+    granted: boolean;
+    evidence: ConsentEvidence;
+  }): Promise<void>;
+  /** Estado actual (último asiento) de cada propósito para una cuenta. */
+  currentFor(accountId: string): Promise<ConsentState[]>;
+}
+
+export interface DataSubjectRequestRepository {
+  create(input: {
+    accountId: string;
+    kind: 'export' | 'delete' | 'rectify';
+    notes?: string | null;
+  }): Promise<{ id: string; status: string }>;
 }
 
 export interface AvailabilityPort {

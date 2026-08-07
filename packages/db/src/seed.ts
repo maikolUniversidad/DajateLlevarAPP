@@ -44,6 +44,20 @@ async function main() {
       .returning({ id: s.category.id, slug: s.category.slug });
     const catBySlug = new Map(cats.map((c) => [c.slug, c.id]));
 
+    console.log('Sembrando versiones de política (Ley 1581)...');
+    const effectiveFrom = new Date('2026-01-01T00:00:00-05:00');
+    await db.insert(s.policyVersion).values(
+      (['terms', 'privacy', 'marketing', 'sensitive_accessibility', 'ai_processing'] as const).map(
+        (purpose) => ({
+          purpose,
+          version: '1.0',
+          contentUrl: `/legal/${purpose}`,
+          contentHash: 'seed-1.0',
+          effectiveFrom,
+        }),
+      ),
+    );
+
     console.log('Sembrando cuentas...');
     const accounts = await db
       .insert(s.account)

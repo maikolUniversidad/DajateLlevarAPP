@@ -14,7 +14,12 @@ export type DomainErrorCode =
   | 'INVALID_TRANSITION'
   | 'NOT_AUTHORIZED'
   | 'LEDGER_UNBALANCED'
-  | 'PRICING_INVALID';
+  | 'PRICING_INVALID'
+  | 'EMAIL_TAKEN'
+  | 'POLICY_NOT_CONFIGURED'
+  | 'AUTH_FAILED'
+  | 'ACCOUNT_NOT_FOUND'
+  | 'CONSENT_REQUIRED';
 
 export class DomainError extends Error {
   readonly code: DomainErrorCode;

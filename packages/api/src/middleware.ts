@@ -1,6 +1,11 @@
+import { makeAccountRepository } from '@dejatellevar/db';
 import type { MiddlewareHandler } from 'hono';
-import type { ApiEnv } from './context.js';
+import { getCookie } from 'hono/cookie';
+import type { ApiDeps, ApiEnv } from './context.js';
 import { errorResponse } from './errors.js';
+
+/** Nombre de la cookie de sesión (token del proveedor de auth, httpOnly). */
+export const SESSION_COOKIE = 'dl_session';
 
 /**
  * Middlewares transversales (§8). Simples y sin estado persistente en memoria
@@ -17,17 +22,33 @@ export const requestId: MiddlewareHandler<ApiEnv> = async (c, next) => {
 };
 
 /**
- * Autenticación: lee el token del header o de la cookie httpOnly. En esta etapa
- * de cimientos solo extrae el account/org del header para poder ejercitar la API;
- * el módulo de identidad lo reemplaza por verificación real con AuthProvider.
+ * Autenticación: lee el token de la cookie httpOnly `dl_session` (o del header
+ * Authorization: Bearer), lo verifica con el AuthProvider y mapea el usuario del
+ * proveedor a nuestra cuenta local por external_auth_id. Si no hay sesión válida,
+ * accountId queda en null (las rutas protegidas responden 401 con requireAuth).
  */
-export const auth: MiddlewareHandler<ApiEnv> = async (c, next) => {
-  const accountId = c.req.header('x-account-id') ?? null;
-  const organizationId = c.req.header('x-organization-id') ?? null;
-  c.set('accountId', accountId);
-  c.set('organizationId', organizationId);
-  await next();
-};
+export function authContext(deps: ApiDeps): MiddlewareHandler<ApiEnv> {
+  const accounts = makeAccountRepository(deps.db);
+  return async (c, next) => {
+    let accountId: string | null = null;
+    const bearer = c.req.header('authorization')?.replace(/^Bearer\s+/i, '');
+    const token = bearer || getCookie(c, SESSION_COOKIE);
+    if (token) {
+      try {
+        const verified = await deps.auth.verifyToken(token);
+        if (verified) {
+          const account = await accounts.findByExternalAuthId(verified.externalUserId);
+          accountId = account?.id ?? null;
+        }
+      } catch {
+        accountId = null;
+      }
+    }
+    c.set('accountId', accountId);
+    c.set('organizationId', c.req.header('x-organization-id') ?? null);
+    await next();
+  };
+}
 
 /** Exige sesión (para endpoints de escritura). */
 export const requireAuth: MiddlewareHandler<ApiEnv> = async (c, next) => {

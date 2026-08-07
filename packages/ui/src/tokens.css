@@ -1,21 +1,22 @@
 /* ============================================================================
-   DÉJATELLEVAR — Tokens de diseño (§1). Concepto rector: HORIZONTE.
-   Seis valores nombrados derivados del Llano, no de una plantilla.
+   DÉJATELLEVAR — Tokens de diseño (§1). Concepto rector: HORIZONTE AL ATARDECER.
+   El cielo del Llano al caer la tarde: violetas e índigos sobre papel frío.
+   Valores nombrados de la marca, no de una plantilla.
    ============================================================================ */
 
 :root {
-  /* Superficies y texto */
-  --paja: #f2f3ef; /* fondo base — papel con tinte verde-gris */
-  --niebla: #e4e7e0; /* superficie elevada, bordes suaves */
-  --carbon: #16211e; /* texto principal, casi negro con verde */
-  --humo: #5c6b64; /* texto secundario, metadatos */
+  /* Superficies y texto (neutros fríos, tinte violeta) */
+  --paja: #f6f5fa; /* fondo base — papel casi blanco con tinte lila */
+  --niebla: #e8e6f0; /* superficie elevada, bordes suaves */
+  --carbon: #191427; /* texto principal, casi negro con violeta */
+  --humo: #625c74; /* texto secundario, metadatos */
 
   /* Marca */
-  --monte: #1f3d33; /* verde profundo — encabezados, superficies oscuras */
-  --rio: #2e7d6f; /* verde-azul — acción primaria, enlaces, foco */
-  --maiz: #f0b429; /* ámbar — acento, destacados, insignias */
+  --noche: #2e2a5e; /* índigo profundo — encabezados, superficies oscuras */
+  --violeta: #7c3aed; /* violeta — acción primaria, enlaces, foco */
+  --lila: #a78bfa; /* lila claro — acento, destacados, insignias */
 
-  /* Estados */
+  /* Estados (funcionales: el eje rojo↔verde es afordancia, no marca) */
   --tinto: #8c2f39; /* error, destructivo, fidelidad negativa */
   --brote: #3f8f5c; /* éxito, confirmado, fidelidad positiva */
   --barro: #b5651d; /* advertencia, pendiente, atención */
@@ -26,11 +27,11 @@
   --surface-raised: var(--niebla);
   --text: var(--carbon);
   --text-muted: var(--humo);
-  --primary: var(--rio);
+  --primary: var(--violeta);
   --primary-contrast: #ffffff;
-  --accent: var(--maiz);
+  --accent: var(--lila);
   --border-color: var(--niebla);
-  --border-strong: #c9cfc7;
+  --border-strong: #cfcadd;
 
   /* Tipografía */
   --font-display: "Bricolage Grotesque", system-ui, sans-serif;
@@ -69,37 +70,37 @@
   --shadow-modal: 0 12px 40px rgba(22, 33, 30, 0.18);
 }
 
-/* Modo oscuro: --monte como base, --paja como texto.
+/* Modo oscuro: --noche como base, --paja como texto.
    El bloque se declara una vez con un grupo de variables reutilizado por el
    toggle explícito (data-theme="dark") y por la preferencia del sistema. */
 :root[data-theme="dark"] {
-  --bg: var(--monte);
-  --surface: #24473b;
-  --surface-raised: #2c5748;
+  --bg: var(--noche);
+  --surface: #35306b;
+  --surface-raised: #403a7d;
   --text: var(--paja);
-  --text-muted: #a9b6ae;
-  --primary: #4aa593;
-  --primary-contrast: #0c1512;
-  --border-color: #35604f;
-  --border-strong: #3f6f5b;
+  --text-muted: #b4aecb;
+  --primary: #9b7df0;
+  --primary-contrast: #17122e;
+  --border-color: #4a4488;
+  --border-strong: #5a5399;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: var(--monte);
-    --surface: #24473b;
-    --surface-raised: #2c5748;
+    --bg: var(--noche);
+    --surface: #35306b;
+    --surface-raised: #403a7d;
     --text: var(--paja);
-    --text-muted: #a9b6ae;
-    --primary: #4aa593;
-    --primary-contrast: #0c1512;
-    --border-color: #35604f;
-    --border-strong: #3f6f5b;
+    --text-muted: #b4aecb;
+    --primary: #9b7df0;
+    --primary-contrast: #17122e;
+    --border-color: #4a4488;
+    --border-strong: #5a5399;
   }
 }
 
 *:focus-visible {
-  outline: 2px solid var(--rio);
+  outline: 2px solid var(--violeta);
   outline-offset: 2px;
 }
 

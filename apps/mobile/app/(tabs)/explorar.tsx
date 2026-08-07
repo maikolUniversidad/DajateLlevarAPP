@@ -53,7 +53,7 @@ export default function ExplorarScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator color={colors.rio} style={{ marginTop: 32 }} />
+        <ActivityIndicator color={colors.violeta} style={{ marginTop: 32 }} />
       ) : error ? (
         <Text style={styles.error}>{error}</Text>
       ) : services.length === 0 ? (
@@ -96,7 +96,7 @@ export default function ExplorarScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.paja },
-  searchRow: { padding: 16, backgroundColor: colors.monte },
+  searchRow: { padding: 16, backgroundColor: colors.noche },
   input: {
     height: 44,
     borderRadius: 6,

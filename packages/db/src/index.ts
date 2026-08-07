@@ -10,6 +10,12 @@ export {
   systemClock,
 } from './repositories.js';
 export {
+  makeAccountRepository,
+  makePolicyVersionRepository,
+  makeConsentRepository,
+  makeDataSubjectRequestRepository,
+} from './identity-repositories.js';
+export {
   createSupabaseAuthProvider,
   type SupabaseAuthConfig,
 } from './adapters/supabase-auth.js';

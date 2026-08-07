@@ -1,3 +1,4 @@
+import type { AuthProvider } from '@dejatellevar/core';
 import type { DbClient } from '@dejatellevar/db';
 
 /**
@@ -6,10 +7,12 @@ import type { DbClient } from '@dejatellevar/db';
  */
 export interface ApiDeps {
   db: DbClient;
+  auth: AuthProvider;
 }
 
 /** Variables por request que fijan los middlewares. */
 export interface ApiVariables {
+  /** account.id local (no el id del proveedor de auth). */
   accountId: string | null;
   organizationId: string | null;
   requestId: string;

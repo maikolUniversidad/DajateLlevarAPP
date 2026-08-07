@@ -53,37 +53,38 @@ dejatellevar/
 
 **El sujeto es el Llano.** Villavicencio es la puerta entre la cordillera y la llanura: horizontes largos, luz baja, ríos anchos, y una cultura de trabajo al aire libre. Pero DéjateLlevar no es una postal turística: es una herramienta donde alguien cobra, agenda y firma contratos. La identidad tiene que sostener las dos cosas.
 
-**Concepto rector: HORIZONTE.** El producto se organiza en bandas horizontales anchas y generosas, no en cuadrículas apretadas de tarjetas. La información importante ocupa el ancho completo. El espacio negativo hace el trabajo que en otros productos hacen los bordes.
+**Concepto rector: HORIZONTE AL ATARDECER.** El producto se organiza en bandas horizontales anchas y generosas, no en cuadrículas apretadas de tarjetas. La información importante ocupa el ancho completo. El espacio negativo hace el trabajo que en otros productos hacen los bordes. La marca toma el color del cielo del Llano cuando cae la tarde: violetas e índigos profundos sobre papel frío, con cabeceras de degradado y borde inferior curvo.
 
 **Lo que este diseño evita deliberadamente:** el fondo crema con serif de alto contraste y acento terracota, el fondo casi negro con un solo acento neón, y la retícula tipo periódico con filas capilares. Son las tres direcciones a las que todo producto nuevo tiende por inercia, y ninguna dice nada sobre este proyecto en particular.
 
 ### 1.2 Paleta
 
-Seis valores nombrados. Todos derivados del sujeto, no de una plantilla.
+Valores nombrados de la marca. El eje violeta es la identidad; el eje rojo↔verde de estado es afordancia funcional, no decoración.
 
 ```css
-/* Superficies y texto */
---paja:      #F2F3EF;   /* fondo base — papel con tinte verde-gris, no crema */
---niebla:    #E4E7E0;   /* superficie elevada, bordes suaves */
---carbon:    #16211E;   /* texto principal, casi negro con verde */
---humo:      #5C6B64;   /* texto secundario, metadatos */
+/* Superficies y texto (neutros fríos, tinte violeta) */
+--paja:      #F6F5FA;   /* fondo base — papel casi blanco con tinte lila */
+--niebla:    #E8E6F0;   /* superficie elevada, bordes suaves */
+--carbon:    #191427;   /* texto principal, casi negro con violeta */
+--humo:      #625C74;   /* texto secundario, metadatos */
 
 /* Marca */
---monte:     #1F3D33;   /* verde profundo — encabezados, superficies oscuras */
---rio:       #2E7D6F;   /* verde-azul — acción primaria, enlaces, foco */
---maiz:      #F0B429;   /* ámbar — acento, destacados, insignias */
+--noche:     #2E2A5E;   /* índigo profundo — encabezados, superficies oscuras */
+--violeta:   #7C3AED;   /* violeta — acción primaria, enlaces, foco */
+--lila:      #A78BFA;   /* lila claro — acento, destacados, insignias */
 
-/* Estados */
+/* Estados (funcionales, no marca) */
 --tinto:     #8C2F39;   /* error, destructivo, fidelidad negativa */
 --brote:     #3F8F5C;   /* éxito, confirmado, fidelidad positiva */
 --barro:     #B5651D;   /* advertencia, pendiente, atención */
 ```
 
 **Reglas de uso:**
-- `--rio` es el único color de acción primaria. Un botón primario por pantalla.
-- `--maiz` se usa con restricción extrema: destacar un dato, no decorar una sección.
-- La escala de fidelidad usa `--tinto` → `--humo` → `--brote` como gradiente semántico.
-- Modo oscuro: `--monte` como base, `--paja` como texto, el resto se invierte proporcionalmente.
+- `--violeta` es el único color de acción primaria. Un botón primario por pantalla.
+- `--lila` se usa con restricción extrema: destacar un dato, no decorar una sección.
+- Botones y campos son tipo píldora; las cabeceras usan degradado `--violeta`→`--noche` con borde inferior curvo.
+- La escala de fidelidad conserva `--tinto` → `--humo` → `--brote` como gradiente semántico: el eje malo↔bueno debe leerse por color universal, sin importar la marca.
+- Modo oscuro: `--noche` como base, `--paja` como texto, el resto se invierte proporcionalmente.
 
 ### 1.3 Tipografía
 
@@ -190,7 +191,7 @@ Inventario mínimo que debe existir en `packages/ui` antes de construir vistas:
 Toda vista, sin excepción:
 
 - **Responsiva** desde 360px hasta 1920px. Móvil primero en la web pública, escritorio primero en los paneles.
-- **Foco visible** en todo elemento interactivo: anillo de 2px en `--rio` con desplazamiento de 2px.
+- **Foco visible** en todo elemento interactivo: anillo de 2px en `--violeta` con desplazamiento de 2px.
 - **Contraste AA mínimo** (4.5:1 en texto normal, 3:1 en texto grande). Verificado, no supuesto.
 - **`prefers-reduced-motion` respetado**: sin animaciones de entrada si está activo.
 - **Estados completos**: toda vista tiene diseño de carga, vacío, error y sin permisos. Un estado vacío es una invitación a actuar, no una disculpa.

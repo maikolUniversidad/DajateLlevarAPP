@@ -1,8 +1,10 @@
 import { Hono } from 'hono';
 import type { ApiDeps, ApiEnv } from './context.js';
 import { onError } from './errors.js';
-import { auth, idempotency, rateLimit, requestId } from './middleware.js';
+import { authContext, idempotency, rateLimit, requestId } from './middleware.js';
 import { openApiDocument } from './openapi.js';
+import { authRoutes } from './routes/auth.js';
+import { meRoutes } from './routes/me.js';
 import { servicesRoutes } from './routes/services.js';
 
 /**
@@ -14,7 +16,7 @@ export function createApiApp(deps: ApiDeps) {
   const app = new Hono<ApiEnv>().basePath('/api');
 
   app.use('*', requestId);
-  app.use('*', auth);
+  app.use('*', authContext(deps));
   app.use('*', rateLimit);
   app.use('*', idempotency);
   app.onError(onError);
@@ -22,6 +24,8 @@ export function createApiApp(deps: ApiDeps) {
   app.get('/health', (c) => c.json({ ok: true, service: 'dejatellevar-api' }));
   app.get('/v1/openapi.json', (c) => c.json(openApiDocument()));
 
+  app.route('/v1/auth', authRoutes(deps));
+  app.route('/v1/me', meRoutes(deps));
   app.route('/v1/services', servicesRoutes(deps));
 
   app.notFound((c) =>

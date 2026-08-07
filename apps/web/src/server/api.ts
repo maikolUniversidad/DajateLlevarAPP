@@ -1,6 +1,6 @@
 import 'server-only';
 import { type ApiApp, createApiApp } from '@dejatellevar/api';
-import { type DbClient, createDbClient } from '@dejatellevar/db';
+import { type DbClient, createDbClient, createSupabaseAuthProvider } from '@dejatellevar/db';
 
 /**
  * Instancia única del cliente de BD y de la app de API para el servidor de Next.
@@ -24,7 +24,14 @@ function getDb(): DbClient {
 
 export function getApiApp(): ApiApp {
   if (!globalThis.__dl_api) {
-    globalThis.__dl_api = createApiApp({ db: getDb() });
+    const auth = createSupabaseAuthProvider({
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
+      anonKey:
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+        '',
+    });
+    globalThis.__dl_api = createApiApp({ db: getDb(), auth });
   }
   return globalThis.__dl_api;
 }

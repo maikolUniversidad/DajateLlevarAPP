@@ -26,7 +26,7 @@ export function createSupabaseAuthProvider(config: SupabaseAuthConfig): AuthProv
       });
       if (!res.ok) return null;
       const user = (await res.json()) as { id?: string };
-      return user.id ? { accountId: user.id } : null;
+      return user.id ? { externalUserId: user.id } : null;
     },
 
     async createUser({ email, password, fullName }) {
@@ -37,9 +37,9 @@ export function createSupabaseAuthProvider(config: SupabaseAuthConfig): AuthProv
       });
       if (!res.ok) throw new Error(`Supabase signup falló: ${res.status}`);
       const user = (await res.json()) as { id?: string; user?: { id: string } };
-      const accountId = user.id ?? user.user?.id;
-      if (!accountId) throw new Error('Supabase signup no devolvió id');
-      return { accountId };
+      const externalUserId = user.id ?? user.user?.id;
+      if (!externalUserId) throw new Error('Supabase signup no devolvió id');
+      return { externalUserId };
     },
 
     async signIn({ email, password }) {

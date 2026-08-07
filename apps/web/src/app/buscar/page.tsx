@@ -39,7 +39,7 @@ export default async function SearchPage({
   return (
     <main className="mx-auto max-w-5xl px-6 py-10 md:px-12">
       <div className="mb-6">
-        <Link href="/" className="font-body text-sm text-rio hover:underline">
+        <Link href="/" className="font-body text-sm text-violeta hover:underline">
           ← Inicio
         </Link>
       </div>
@@ -81,7 +81,7 @@ export default async function SearchPage({
         {sp.category && <input type="hidden" name="category" value={sp.category} />}
         <button
           type="submit"
-          className="h-10 rounded-md bg-rio px-5 font-body font-medium text-white hover:opacity-90"
+          className="h-10 rounded-md bg-violeta px-5 font-body font-medium text-white hover:opacity-90"
         >
           Aplicar
         </button>

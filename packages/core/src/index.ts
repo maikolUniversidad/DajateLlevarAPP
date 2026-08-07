@@ -4,3 +4,4 @@ export * from './entities.js';
 export * from './ports.js';
 export * from './verification-level.js';
 export * from './use-cases/create-booking.js';
+export * from './use-cases/register-account.js';

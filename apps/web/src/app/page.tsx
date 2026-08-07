@@ -31,9 +31,9 @@ export default async function HomePage() {
   return (
     <main>
       {/* HERO — concepto rector: HORIZONTE. Bandas horizontales anchas. */}
-      <section className="bg-monte px-6 py-24 text-paja md:px-12">
+      <section className="bg-noche px-6 py-24 text-paja md:px-12">
         <div className="mx-auto max-w-5xl">
-          <p className="font-mono text-sm uppercase tracking-widest text-maiz">
+          <p className="font-mono text-sm uppercase tracking-widest text-lila">
             Villavicencio · Meta
           </p>
           <h1 className="mt-4 max-w-3xl font-display text-4xl leading-tight md:text-4xl">
@@ -53,7 +53,7 @@ export default async function HomePage() {
             />
             <button
               type="submit"
-              className="h-12 rounded-md bg-rio px-6 font-body font-medium text-white hover:opacity-90"
+              className="h-12 rounded-md bg-violeta px-6 font-body font-medium text-white hover:opacity-90"
             >
               Buscar
             </button>
@@ -81,7 +81,10 @@ export default async function HomePage() {
       <section className="mx-auto max-w-5xl px-6 pb-16 md:px-12">
         <div className="flex items-end justify-between">
           <h2 className="font-display text-2xl text-text">Mejor calificados por fidelidad</h2>
-          <Link href="/buscar?sort=fidelity" className="font-body text-sm text-rio hover:underline">
+          <Link
+            href="/buscar?sort=fidelity"
+            className="font-body text-sm text-violeta hover:underline"
+          >
             Ver todos
           </Link>
         </div>
