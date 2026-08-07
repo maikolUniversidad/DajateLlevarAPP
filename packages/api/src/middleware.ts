@@ -1,8 +1,22 @@
-import { makeAccountRepository } from '@dejatellevar/db';
+import type { Permission } from '@dejatellevar/contracts';
+import { can, permissionsFor } from '@dejatellevar/core';
+import {
+  makeAccountRepository,
+  makeAuditLogRepository,
+  makePlatformStaffRepository,
+} from '@dejatellevar/db';
 import type { MiddlewareHandler } from 'hono';
 import { getCookie } from 'hono/cookie';
 import type { ApiDeps, ApiEnv } from './context.js';
 import { errorResponse } from './errors.js';
+
+/** IP del cliente a partir de las cabeceras de proxy habituales. */
+function clientIp(headers: {
+  'x-forwarded-for'?: string | null;
+  'x-real-ip'?: string | null;
+}): string | null {
+  return headers['x-forwarded-for']?.split(',')[0]?.trim() ?? headers['x-real-ip'] ?? null;
+}
 
 /** Nombre de la cookie de sesión (token del proveedor de auth, httpOnly). */
 export const SESSION_COOKIE = 'dl_session';
@@ -57,6 +71,98 @@ export const requireAuth: MiddlewareHandler<ApiEnv> = async (c, next) => {
   }
   await next();
 };
+
+/**
+ * Contexto de plataforma: si la sesión pertenece al staff del backoffice, carga su
+ * rol y calcula sus permisos efectivos (paquete del rol + extras). Para el resto de
+ * usuarios queda en null / lista vacía.
+ */
+export function platformAuth(deps: ApiDeps): MiddlewareHandler<ApiEnv> {
+  const staff = makePlatformStaffRepository(deps.db);
+  return async (c, next) => {
+    c.set('platformRole', null);
+    c.set('platformPermissions', []);
+    const accountId = c.get('accountId');
+    if (accountId) {
+      const member = await staff.findByAccountId(accountId);
+      if (member) {
+        c.set('platformRole', member.role);
+        c.set('platformPermissions', permissionsFor(member.role, member.extraPermissions));
+      }
+    }
+    await next();
+  };
+}
+
+/** Exige un permiso de plataforma concreto (403 si falta). */
+export function requirePermission(permission: Permission): MiddlewareHandler<ApiEnv> {
+  return async (c, next) => {
+    if (!c.get('accountId')) {
+      return errorResponse(c, 401, 'UNAUTHENTICATED', 'Necesitas iniciar sesión');
+    }
+    if (!can(c.get('platformPermissions') ?? [], permission)) {
+      return errorResponse(c, 403, 'FORBIDDEN', 'No tienes permiso para esta acción');
+    }
+    await next();
+  };
+}
+
+const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+const MUTATING = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
+
+/** Deriva recurso y acción legible desde la ruta (p.ej. /api/v1/services/<uuid>). */
+function inferResource(
+  method: string,
+  path: string,
+): {
+  action: string;
+  resourceType: string;
+  resourceId: string | null;
+} {
+  const segments = path.split('/').filter(Boolean); // ['api','v1','services','<uuid>']
+  const rest = segments.slice(2); // quita 'api','v1'
+  const resourceType = rest.find((s) => !UUID_RE.test(s)) ?? 'unknown';
+  const resourceId = rest.find((s) => UUID_RE.test(s)) ?? null;
+  return {
+    action: `${method} /${rest.join('/')}`.slice(0, 80),
+    resourceType: resourceType.slice(0, 60),
+    resourceId,
+  };
+}
+
+/**
+ * Auditoría automática (§11.12 / X15): tras cada request MUTANTE con respuesta 2xx
+ * deja un asiento inmutable en audit_log (quién, qué, cuándo, IP, user agent).
+ * Nunca rompe la respuesta: si el registro falla, solo se anota en consola.
+ * El diff before/after por recurso se instrumenta por caso de uso, no aquí.
+ */
+export function auditTrail(deps: ApiDeps): MiddlewareHandler<ApiEnv> {
+  const audit = makeAuditLogRepository(deps.db);
+  return async (c, next) => {
+    await next();
+    if (!MUTATING.has(c.req.method)) return;
+    const status = c.res.status;
+    if (status < 200 || status >= 300) return;
+    try {
+      const { action, resourceType, resourceId } = inferResource(c.req.method, c.req.path);
+      await audit.record({
+        actorAccountId: c.get('accountId') ?? null,
+        actorKind: 'user',
+        action,
+        resourceType,
+        resourceId,
+        organizationId: c.get('organizationId'),
+        ipAddress: clientIp({
+          'x-forwarded-for': c.req.header('x-forwarded-for'),
+          'x-real-ip': c.req.header('x-real-ip'),
+        }),
+        userAgent: c.req.header('user-agent') ?? null,
+      });
+    } catch (e) {
+      console.error('[audit] no se pudo registrar la acción:', e);
+    }
+  };
+}
 
 const seenKeys = new Set<string>();
 

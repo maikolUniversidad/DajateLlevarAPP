@@ -6,6 +6,7 @@ import { z } from 'zod';
  */
 
 export const ProfileType = z.enum(['client', 'creator', 'business', 'agency']);
+export type ProfileType = z.infer<typeof ProfileType>;
 export const VerificationLevel = z.enum([
   'l0_email',
   'l1_phone',
@@ -15,6 +16,15 @@ export const VerificationLevel = z.enum([
   'l5_insurance',
 ]);
 export const MembershipRole = z.enum(['owner', 'admin', 'staff', 'viewer']);
+export type MembershipRole = z.infer<typeof MembershipRole>;
+
+/**
+ * Roles de plataforma (backoffice / consola /admin, §7.6 X01–X15). Son transversales
+ * a las organizaciones; no confundir con MembershipRole, que es por organización.
+ * Cada rol es un paquete de permisos granulares (ver Permission en ./admin.ts).
+ */
+export const PlatformRole = z.enum(['super_admin', 'moderator', 'finance', 'support', 'analyst']);
+export type PlatformRole = z.infer<typeof PlatformRole>;
 
 export const ServiceModality = z.enum(['scheduled', 'capacity', 'on_demand', 'digital']);
 export const ServiceStatus = z.enum(['draft', 'pending_review', 'published', 'paused', 'archived']);
@@ -118,6 +128,23 @@ export const DeliverableStatus = z.enum([
 ]);
 export const SocialNetwork = z.enum(['tiktok', 'instagram', 'youtube', 'facebook', 'x', 'twitch']);
 
+/** Estado de un enlace social declarado por el creador (antes/después del scraping). */
+export const SocialLinkStatus = z.enum(['pending', 'verified', 'failed']);
+
+/** Tipo de pieza de contenido raspada de una red social. */
+export const SocialContentKind = z.enum([
+  'video',
+  'short',
+  'reel',
+  'live',
+  'image',
+  'carousel',
+  'text',
+]);
+
+/** Estado del análisis de contenido de un creador (scraping + transcripción + clasificación). */
+export const CreatorAnalysisStatus = z.enum(['pending', 'running', 'completed', 'failed']);
+
 export const AttributionMechanism = z.enum([
   'tracked_link',
   'creator_code',
@@ -182,3 +209,10 @@ export type CancellationPolicy = z.infer<typeof CancellationPolicy>;
 export type ReviewAxisKind = z.infer<typeof ReviewAxisKind>;
 export type LedgerSide = z.infer<typeof LedgerSide>;
 export type LedgerAccount = z.infer<typeof LedgerAccount>;
+export type CampaignStatus = z.infer<typeof CampaignStatus>;
+export type CampaignModel = z.infer<typeof CampaignModel>;
+export type ApplicationStatus = z.infer<typeof ApplicationStatus>;
+export type SocialNetwork = z.infer<typeof SocialNetwork>;
+export type SocialLinkStatus = z.infer<typeof SocialLinkStatus>;
+export type SocialContentKind = z.infer<typeof SocialContentKind>;
+export type CreatorAnalysisStatus = z.infer<typeof CreatorAnalysisStatus>;

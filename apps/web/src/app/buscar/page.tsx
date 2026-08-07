@@ -38,9 +38,12 @@ export default async function SearchPage({
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10 md:px-12">
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <Link href="/" className="font-body text-sm text-violeta hover:underline">
           ← Inicio
+        </Link>
+        <Link href="/mi/gustos" className="font-body text-sm text-violeta hover:underline">
+          ✨ Personaliza tus gustos
         </Link>
       </div>
 

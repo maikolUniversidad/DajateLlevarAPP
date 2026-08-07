@@ -12,4 +12,4 @@ export {
   type ServiceList,
 } from './api-client.js';
 export { OfflineProvider, useApi, type OfflineProviderProps } from './provider.js';
-export { useServices, useService, useMe, queryKeys } from './hooks.js';
+export { useServices, useService, useMe, useMyCreator, queryKeys } from './hooks.js';

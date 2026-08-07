@@ -1,4 +1,13 @@
-import type { ConsentRecord, Me, Service, ServiceSearch } from '@dejatellevar/contracts';
+import type {
+  AnalyzedContentItem,
+  ConsentRecord,
+  CreatorInsight,
+  Me,
+  MyCreator,
+  RegisterCreator,
+  Service,
+  ServiceSearch,
+} from '@dejatellevar/contracts';
 
 export interface ApiClientOptions {
   /** Base de la API. Web: '/api' (mismo origen). Móvil: 'https://.../api'. */
@@ -71,6 +80,22 @@ export function createApiClient(opts: ApiClientOptions) {
         method: 'POST',
         body: JSON.stringify(input),
       });
+    },
+    // --- Creadores (§12): registro de enlaces + análisis de contenido ---------
+    registerCreator(input: RegisterCreator): Promise<MyCreator> {
+      return request<MyCreator>('/v1/creators', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      });
+    },
+    myCreator(): Promise<MyCreator> {
+      return request<MyCreator>('/v1/creators/me');
+    },
+    analyzeMyContent(): Promise<CreatorInsight> {
+      return request<CreatorInsight>('/v1/creators/me/analyze', { method: 'POST' });
+    },
+    myContent(): Promise<{ data: AnalyzedContentItem[] }> {
+      return request<{ data: AnalyzedContentItem[] }>('/v1/creators/me/content');
     },
     logout() {
       return request<{ ok: boolean }>('/v1/auth/logout', { method: 'POST' });

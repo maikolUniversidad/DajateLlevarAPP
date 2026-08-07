@@ -1,3 +1,4 @@
+import type { Permission, PlatformRole } from '@dejatellevar/contracts';
 import type { AuthProvider } from '@dejatellevar/core';
 import type { DbClient } from '@dejatellevar/db';
 
@@ -16,6 +17,10 @@ export interface ApiVariables {
   accountId: string | null;
   organizationId: string | null;
   requestId: string;
+  /** Rol de plataforma del staff autenticado (null si no es staff). */
+  platformRole: PlatformRole | null;
+  /** Permisos efectivos del staff (paquete del rol + extras). */
+  platformPermissions: Permission[];
 }
 
 export type ApiEnv = {

@@ -49,6 +49,10 @@ function makeDeps(opts: {
   };
   const organizations: OrganizationRepository = {
     findById: async (): Promise<Organization | null> => null,
+    existsByTaxId: async () => false,
+    create: async () => {
+      throw new Error('no usado en esta prueba');
+    },
   };
   const availability: AvailabilityPort = {
     isSlotAvailable: async () => opts.available ?? true,

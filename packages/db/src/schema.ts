@@ -107,6 +107,39 @@ export const consentPurpose = pgEnum('consent_purpose', [
   'ai_processing',
   'data_sharing',
 ]);
+export const platformRole = pgEnum('platform_role', [
+  'super_admin',
+  'moderator',
+  'finance',
+  'support',
+  'analyst',
+]);
+export const profileType = pgEnum('profile_type', ['client', 'creator', 'business', 'agency']);
+export const membershipRole = pgEnum('membership_role', ['owner', 'admin', 'staff', 'viewer']);
+export const socialNetwork = pgEnum('social_network', [
+  'tiktok',
+  'instagram',
+  'youtube',
+  'facebook',
+  'x',
+  'twitch',
+]);
+export const socialLinkStatus = pgEnum('social_link_status', ['pending', 'verified', 'failed']);
+export const socialContentKind = pgEnum('social_content_kind', [
+  'video',
+  'short',
+  'reel',
+  'live',
+  'image',
+  'carousel',
+  'text',
+]);
+export const creatorAnalysisStatus = pgEnum('creator_analysis_status', [
+  'pending',
+  'running',
+  'completed',
+  'failed',
+]);
 
 // --- Identidad --------------------------------------------------------------
 export const account = pgTable('account', {
@@ -143,6 +176,112 @@ export const clientProfile = pgTable('client_profile', {
   totalBookings: integer('total_bookings').notNull().default(0),
   createdAt: ts('created_at').notNull().defaultNow(),
   updatedAt: ts('updated_at').notNull().defaultNow(),
+});
+
+// Perfil de creador: activable sobre la cuenta. Las métricas son calculadas
+// (audiencia verificada + atribución), nunca declaradas en el alta (§12).
+export const creatorProfile = pgTable('creator_profile', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  accountId: uuid('account_id').notNull(),
+  handle: text('handle').notNull(),
+  bio: text('bio'),
+  categories: text('categories').array().notNull().default(sql`'{}'`),
+  cities: text('cities').array().notNull().default(sql`'{}'`),
+  languages: text('languages').array().notNull().default(sql`'{es}'`),
+  isAcceptingWork: boolean('is_accepting_work').notNull().default(true),
+  totalFollowers: integer('total_followers').notNull().default(0),
+  avgEngagementRate: numeric('avg_engagement_rate', { precision: 5, scale: 4 }),
+  fidelityIndex: numeric('fidelity_index', { precision: 4, scale: 2 }),
+  fidelitySampleSize: integer('fidelity_sample_size').notNull().default(0),
+  conversionRate: numeric('conversion_rate', { precision: 5, scale: 4 }),
+  totalAttributedGmv: bigint('total_attributed_gmv', { mode: 'number' }).notNull().default(0),
+  onTimeDeliveryRate: numeric('on_time_delivery_rate', { precision: 5, scale: 4 }),
+  avgRevisionRounds: numeric('avg_revision_rounds', { precision: 4, scale: 2 }),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+});
+
+// --- Enlaces sociales y análisis de contenido de creadores (§12) ------------
+// El creador declara sus enlaces (entrada del scraping); las piezas y el insight
+// se calculan del análisis de contenido, nunca se declaran.
+export const creatorSocialLink = pgTable('creator_social_link', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  creatorProfileId: uuid('creator_profile_id').notNull(),
+  network: socialNetwork('network').notNull(),
+  url: text('url').notNull(),
+  handle: varchar('handle', { length: 120 }),
+  status: socialLinkStatus('status').notNull().default('pending'),
+  lastAnalyzedAt: ts('last_analyzed_at'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+});
+
+export const creatorContentItem = pgTable('creator_content_item', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  creatorProfileId: uuid('creator_profile_id').notNull(),
+  socialLinkId: uuid('social_link_id'),
+  network: socialNetwork('network').notNull(),
+  kind: socialContentKind('kind').notNull(),
+  externalId: varchar('external_id', { length: 200 }),
+  url: text('url').notNull(),
+  title: text('title'),
+  views: integer('views').notNull().default(0),
+  likes: integer('likes').notNull().default(0),
+  comments: integer('comments').notNull().default(0),
+  shares: integer('shares').notNull().default(0),
+  durationSeconds: integer('duration_seconds'),
+  publishedAt: ts('published_at'),
+  transcript: text('transcript'),
+  language: varchar('language', { length: 10 }),
+  topics: text('topics').array().notNull().default(sql`'{}'`),
+  analyzedAt: ts('analyzed_at'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+export const creatorContentInsight = pgTable('creator_content_insight', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  creatorProfileId: uuid('creator_profile_id').notNull(),
+  status: creatorAnalysisStatus('status').notNull().default('pending'),
+  itemsAnalyzed: integer('items_analyzed').notNull().default(0),
+  totalViews: bigint('total_views', { mode: 'number' }).notNull().default(0),
+  avgViews: numeric('avg_views', { precision: 12, scale: 2 }).notNull().default('0'),
+  avgEngagementRate: numeric('avg_engagement_rate', { precision: 5, scale: 4 }),
+  suggestedCategories: text('suggested_categories').array().notNull().default(sql`'{}'`),
+  topTopics: text('top_topics').array().notNull().default(sql`'{}'`),
+  audience: jsonb('audience').notNull().default({}),
+  brandSafety: varchar('brand_safety', { length: 10 }).notNull().default('review'),
+  networks: jsonb('networks').notNull().default([]),
+  analyzedAt: ts('analyzed_at'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+});
+
+// Membresía: qué cuenta opera qué organización y con qué rol (§10.1).
+export const organizationMembership = pgTable('organization_membership', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: uuid('organization_id').notNull(),
+  accountId: uuid('account_id').notNull(),
+  role: membershipRole('role').notNull().default('staff'),
+  invitedBy: uuid('invited_by'),
+  acceptedAt: ts('accepted_at'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+  deletedAt: ts('deleted_at'),
+});
+
+// Sedes (locales) de una organización. Una empresa puede operar en varias (§10.1).
+export const organizationLocation = pgTable('organization_location', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: uuid('organization_id').notNull(),
+  name: varchar('name', { length: 160 }).notNull(),
+  address: text('address'),
+  city: varchar('city', { length: 80 }).notNull(),
+  department: varchar('department', { length: 80 }).notNull(),
+  latitude: numeric('latitude', { precision: 9, scale: 6 }),
+  longitude: numeric('longitude', { precision: 9, scale: 6 }),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+  deletedAt: ts('deleted_at'),
 });
 
 // --- Cumplimiento y consentimiento (Ley 1581) -------------------------------
@@ -191,6 +330,7 @@ export const organization = pgTable('organization', {
   taxIdVerifiedAt: ts('tax_id_verified_at'),
   tourismRegistry: varchar('tourism_registry', { length: 40 }),
   tourismRegistryValidUntil: date('tourism_registry_valid_until'),
+  sector: varchar('sector', { length: 80 }),
   description: text('description'),
   logoUrl: text('logo_url'),
   email: text('email').notNull(),
@@ -378,6 +518,36 @@ export const reviewAxis = pgTable('review_axis', {
   value: numeric('value', { precision: 3, scale: 1 }).notNull(),
   note: text('note'),
   createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+// --- Administración de plataforma (backoffice) ------------------------------
+export const platformStaff = pgTable('platform_staff', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  accountId: uuid('account_id').notNull(),
+  role: platformRole('role').notNull(),
+  // text[] en Postgres; la validación de qué permisos son válidos vive en el dominio.
+  extraPermissions: text('extra_permissions').array().notNull().default(sql`'{}'`),
+  grantedBy: uuid('granted_by'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+  deletedAt: ts('deleted_at'),
+});
+
+// Registro de acciones administrativas: inmutable (append-only, §11.12 / X15).
+// ip_address es inet en Postgres; se mapea como texto (el driver lo convierte).
+export const auditLog = pgTable('audit_log', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  actorAccountId: uuid('actor_account_id'),
+  actorKind: varchar('actor_kind', { length: 20 }).notNull(),
+  action: varchar('action', { length: 80 }).notNull(),
+  resourceType: varchar('resource_type', { length: 60 }).notNull(),
+  resourceId: uuid('resource_id'),
+  organizationId: uuid('organization_id'),
+  beforeState: jsonb('before_state'),
+  afterState: jsonb('after_state'),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  occurredAt: ts('occurred_at').notNull().defaultNow(),
 });
 
 // --- Eventos de dominio (append-only) ---------------------------------------

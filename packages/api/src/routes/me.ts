@@ -1,9 +1,17 @@
-import { DataRequestSchema, GrantConsentSchema, UpdateMeSchema } from '@dejatellevar/contracts';
+import {
+  ClientPreferencesSchema,
+  DataRequestSchema,
+  GrantConsentSchema,
+  UpdateClientPreferencesSchema,
+  UpdateMeSchema,
+} from '@dejatellevar/contracts';
 import { computeVerificationLevel } from '@dejatellevar/core';
 import {
   makeAccountRepository,
   makeConsentRepository,
+  makeCreatorRepository,
   makeDataSubjectRequestRepository,
+  makeMembershipRepository,
   makePolicyVersionRepository,
   schema,
 } from '@dejatellevar/db';
@@ -20,6 +28,8 @@ export function meRoutes(deps: ApiDeps) {
   const consents = makeConsentRepository(db);
   const policies = makePolicyVersionRepository(db);
   const dataRequests = makeDataSubjectRequestRepository(db);
+  const creators = makeCreatorRepository(db);
+  const memberships = makeMembershipRepository(db);
 
   app.use('*', requireAuth);
 
@@ -38,6 +48,12 @@ export function meRoutes(deps: ApiDeps) {
       },
     });
 
+    // Perfiles activables (§10.1): Cliente siempre; Creador y Empresa según existan.
+    const [creatorProfile, orgs] = await Promise.all([
+      creators.findByAccountId(id),
+      memberships.findByAccountId(id),
+    ]);
+
     return c.json({
       id: r.id,
       email: r.email,
@@ -52,6 +68,15 @@ export function meRoutes(deps: ApiDeps) {
       verification_missing: v.missingForNext,
       city: r.city,
       department: r.department,
+      profiles: {
+        client: true as const,
+        creator: !!creatorProfile,
+        organizations: orgs.map((o) => ({
+          id: o.organizationId,
+          trade_name: o.tradeName,
+          role: o.role,
+        })),
+      },
     });
   });
 
@@ -127,6 +152,32 @@ export function meRoutes(deps: ApiDeps) {
       await accounts.softDelete(id);
     }
     return c.json({ id: created.id, status: created.status, kind: body.kind }, 202);
+  });
+
+  // GET /me/preferences — test de gustos del cliente (para personalizar). Devuelve
+  // valores por defecto si aún no lo completó (parse rellena los faltantes).
+  app.get('/preferences', async (c) => {
+    const id = c.get('accountId')!;
+    const rows = await db
+      .select({ preferences: schema.clientProfile.preferences })
+      .from(schema.clientProfile)
+      .where(eq(schema.clientProfile.accountId, id))
+      .limit(1);
+    const stored = (rows[0]?.preferences ?? {}) as Record<string, unknown>;
+    return c.json(ClientPreferencesSchema.parse(stored));
+  });
+
+  // PUT /me/preferences — guarda el test de gustos. No es dato sensible (Ley 1581):
+  // la accesibilidad va por otro campo/consentimiento aparte.
+  app.put('/preferences', async (c) => {
+    const id = c.get('accountId')!;
+    const body = UpdateClientPreferencesSchema.parse(await c.req.json());
+    const preferences = { ...body, completed_at: new Date().toISOString() };
+    await db
+      .update(schema.clientProfile)
+      .set({ preferences, updatedAt: new Date() })
+      .where(eq(schema.clientProfile.accountId, id));
+    return c.json(ClientPreferencesSchema.parse(preferences));
   });
 
   return app;

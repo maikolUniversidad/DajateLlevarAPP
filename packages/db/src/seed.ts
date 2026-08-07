@@ -99,6 +99,13 @@ async function main() {
       .returning({ id: s.account.id, email: s.account.email });
     const clientId = accounts[1]!.id;
 
+    console.log('Sembrando staff de plataforma (super_admin de desarrollo)...');
+    const adminAccountId = accounts.find((a) => a.email === 'admin@dejatellevar.com')!.id;
+    await db.insert(s.platformStaff).values({
+      accountId: adminAccountId,
+      role: 'super_admin',
+    });
+
     console.log('Sembrando organizaciones...');
     const orgs = await db
       .insert(s.organization)

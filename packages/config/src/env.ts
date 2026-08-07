@@ -33,9 +33,17 @@ const serverSchema = z.object({
   WOMPI_EVENTS_SECRET: z.string().optional(),
   WOMPI_INTEGRITY_SECRET: z.string().optional(),
 
-  // IA
-  AI_GATEWAY_API_KEY: z.string().optional(),
+  // IA — proveedores LLM. La lógica vive tras el puerto LLMProvider (packages/core),
+  // implementado por el adaptador @dejatellevar/ai (OpenAI-compatible, sin SDK).
+  AI_DEFAULT_PROVIDER: z.enum(['deepseek', 'openai']).default('deepseek'),
+  DEEPSEEK_API_KEY: z.string().optional(),
+  DEEPSEEK_BASE_URL: z.string().url().optional(),
+  DEEPSEEK_MODEL: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
+  OPENAI_BASE_URL: z.string().url().optional(),
+  OPENAI_MODEL: z.string().optional(),
+  // AI Gateway de Vercel (opcional: enrutado/fallback de modelos vía "provider/model").
+  AI_GATEWAY_API_KEY: z.string().optional(),
 });
 
 const clientSchema = z.object({

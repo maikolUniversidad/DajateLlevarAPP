@@ -1,9 +1,19 @@
 import { Hono } from 'hono';
 import type { ApiDeps, ApiEnv } from './context.js';
 import { onError } from './errors.js';
-import { authContext, idempotency, rateLimit, requestId } from './middleware.js';
+import {
+  auditTrail,
+  authContext,
+  idempotency,
+  platformAuth,
+  rateLimit,
+  requestId,
+} from './middleware.js';
 import { openApiDocument } from './openapi.js';
+import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
+import { categoriesRoutes } from './routes/categories.js';
+import { creatorRoutes } from './routes/creators.js';
 import { meRoutes } from './routes/me.js';
 import { servicesRoutes } from './routes/services.js';
 
@@ -17,16 +27,22 @@ export function createApiApp(deps: ApiDeps) {
 
   app.use('*', requestId);
   app.use('*', authContext(deps));
+  app.use('*', platformAuth(deps));
   app.use('*', rateLimit);
   app.use('*', idempotency);
+  // Deja rastro de toda acción mutante con respuesta 2xx (§11.12 / X15).
+  app.use('*', auditTrail(deps));
   app.onError(onError);
 
   app.get('/health', (c) => c.json({ ok: true, service: 'dejatellevar-api' }));
   app.get('/v1/openapi.json', (c) => c.json(openApiDocument()));
 
   app.route('/v1/auth', authRoutes(deps));
+  app.route('/v1/categories', categoriesRoutes(deps));
   app.route('/v1/me', meRoutes(deps));
+  app.route('/v1/creators', creatorRoutes(deps));
   app.route('/v1/services', servicesRoutes(deps));
+  app.route('/v1/admin', adminRoutes(deps));
 
   app.notFound((c) =>
     c.json({ error: { code: 'NOT_FOUND', message: 'Recurso no encontrado' } }, 404),

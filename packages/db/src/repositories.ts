@@ -58,26 +58,98 @@ export function makeServiceRepository(db: DbClient): ServiceRepository {
   };
 }
 
+function mapOrganization(r: typeof s.organization.$inferSelect): Organization {
+  return {
+    id: r.id,
+    slug: r.slug,
+    legalName: r.legalName,
+    tradeName: r.tradeName,
+    taxId: r.taxId,
+    taxIdVerifiedAt: r.taxIdVerifiedAt,
+    tourismRegistry: r.tourismRegistry,
+    tourismRegistryValidUntil: r.tourismRegistryValidUntil
+      ? new Date(r.tourismRegistryValidUntil)
+      : null,
+    commissionRate: Number(r.commissionRate),
+    isActive: r.isActive,
+  };
+}
+
 export function makeOrganizationRepository(db: DbClient): OrganizationRepository {
   return {
     async findById(id): Promise<Organization | null> {
       const rows = await db.select().from(s.organization).where(eq(s.organization.id, id)).limit(1);
       const r = rows[0];
-      if (!r) return null;
-      return {
-        id: r.id,
-        slug: r.slug,
-        legalName: r.legalName,
-        tradeName: r.tradeName,
-        taxId: r.taxId,
-        taxIdVerifiedAt: r.taxIdVerifiedAt,
-        tourismRegistry: r.tourismRegistry,
-        tourismRegistryValidUntil: r.tourismRegistryValidUntil
-          ? new Date(r.tourismRegistryValidUntil)
-          : null,
-        commissionRate: Number(r.commissionRate),
-        isActive: r.isActive,
-      };
+      return r ? mapOrganization(r) : null;
+    },
+    async existsByTaxId(taxId): Promise<boolean> {
+      const rows = await db
+        .select({ id: s.organization.id })
+        .from(s.organization)
+        .where(eq(s.organization.taxId, taxId))
+        .limit(1);
+      return rows.length > 0;
+    },
+    async create(input): Promise<Organization> {
+      // Organización + membresía `owner` en una transacción (§10.1). El slug se
+      // resuelve dentro de la tx para garantizar unicidad frente a colisiones.
+      return db.transaction(async (tx) => {
+        const base = input.slug || 'empresa';
+        const existing = await tx
+          .select({ slug: s.organization.slug })
+          .from(s.organization)
+          .where(
+            dsql`${s.organization.slug} = ${base} OR ${s.organization.slug} LIKE ${`${base}-%`}`,
+          );
+        const taken = new Set(existing.map((e) => e.slug.toLowerCase()));
+        let slug = base;
+        if (taken.has(base)) {
+          let n = 2;
+          while (taken.has(`${base}-${n}`)) n++;
+          slug = `${base}-${n}`;
+        }
+
+        const insertedOrg = await tx
+          .insert(s.organization)
+          .values({
+            slug,
+            legalName: input.legalName,
+            tradeName: input.tradeName,
+            taxId: input.taxId,
+            tourismRegistry: input.tourismRegistry ?? null,
+            sector: input.sector ?? null,
+            email: input.email,
+            phone: input.phone,
+            city: input.city,
+            department: input.department,
+          })
+          .returning();
+        const org = insertedOrg[0]!;
+
+        await tx.insert(s.organizationMembership).values({
+          organizationId: org.id,
+          accountId: input.ownerAccountId,
+          role: 'owner',
+          acceptedAt: new Date(),
+        });
+
+        // Sedes opcionales: se crean en la misma transacción que la org.
+        if (input.sedes && input.sedes.length > 0) {
+          await tx.insert(s.organizationLocation).values(
+            input.sedes.map((sede) => ({
+              organizationId: org.id,
+              name: sede.name,
+              address: sede.address ?? null,
+              city: sede.city,
+              department: sede.department,
+              latitude: sede.latitude != null ? String(sede.latitude) : null,
+              longitude: sede.longitude != null ? String(sede.longitude) : null,
+            })),
+          );
+        }
+
+        return mapOrganization(org);
+      });
     },
   };
 }

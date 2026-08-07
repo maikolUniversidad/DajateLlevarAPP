@@ -19,7 +19,18 @@ export type DomainErrorCode =
   | 'POLICY_NOT_CONFIGURED'
   | 'AUTH_FAILED'
   | 'ACCOUNT_NOT_FOUND'
-  | 'CONSENT_REQUIRED';
+  | 'CONSENT_REQUIRED'
+  | 'ORGANIZATION_NOT_FOUND'
+  | 'CAMPAIGN_NOT_FOUND'
+  | 'NOT_CAMPAIGN_OWNER'
+  | 'CREATOR_NOT_FOUND'
+  | 'CREATOR_NOT_ACCEPTING'
+  | 'ALREADY_INVITED'
+  | 'CREATOR_PROFILE_EXISTS'
+  | 'HANDLE_TAKEN'
+  | 'NO_SOCIAL_LINKS'
+  | 'SCRAPING_FAILED'
+  | 'TAX_ID_TAKEN';
 
 export class DomainError extends Error {
   readonly code: DomainErrorCode;
