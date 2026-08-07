@@ -44,6 +44,92 @@ async function main() {
       .returning({ id: s.category.id, slug: s.category.slug });
     const catBySlug = new Map(cats.map((c) => [c.slug, c.id]));
 
+    console.log('Sembrando ejes de reseña por categoría...');
+    const axisConfig: {
+      cat: string;
+      scope: 'venue' | 'product';
+      axisKey: string;
+      label: string;
+      sort: number;
+    }[] = [
+      // Gastronomía — local
+      {
+        cat: 'gastronomia',
+        scope: 'venue',
+        axisKey: 'service_quality',
+        label: 'Servicio',
+        sort: 0,
+      },
+      { cat: 'gastronomia', scope: 'venue', axisKey: 'cleanliness', label: 'Limpieza', sort: 1 },
+      {
+        cat: 'gastronomia',
+        scope: 'venue',
+        axisKey: 'value_for_money',
+        label: 'Calidad-precio',
+        sort: 2,
+      },
+      {
+        cat: 'gastronomia',
+        scope: 'venue',
+        axisKey: 'instagrammability',
+        label: 'Instagrameable',
+        sort: 3,
+      },
+      // Gastronomía — plato
+      { cat: 'gastronomia', scope: 'product', axisKey: 'flavor', label: 'Sabor', sort: 0 },
+      { cat: 'gastronomia', scope: 'product', axisKey: 'portion', label: 'Cantidad', sort: 1 },
+      {
+        cat: 'gastronomia',
+        scope: 'product',
+        axisKey: 'product_value',
+        label: 'Calidad-precio',
+        sort: 2,
+      },
+      // Aventura y naturaleza — local
+      {
+        cat: 'aventura-naturaleza',
+        scope: 'venue',
+        axisKey: 'service_quality',
+        label: 'Guía y servicio',
+        sort: 0,
+      },
+      {
+        cat: 'aventura-naturaleza',
+        scope: 'venue',
+        axisKey: 'punctuality',
+        label: 'Puntualidad',
+        sort: 1,
+      },
+      {
+        cat: 'aventura-naturaleza',
+        scope: 'venue',
+        axisKey: 'value_for_money',
+        label: 'Calidad-precio',
+        sort: 2,
+      },
+      // Bienestar — local
+      { cat: 'bienestar', scope: 'venue', axisKey: 'cleanliness', label: 'Limpieza', sort: 0 },
+      { cat: 'bienestar', scope: 'venue', axisKey: 'service_quality', label: 'Servicio', sort: 1 },
+      {
+        cat: 'bienestar',
+        scope: 'venue',
+        axisKey: 'value_for_money',
+        label: 'Calidad-precio',
+        sort: 2,
+      },
+    ];
+    await db.insert(s.categoryReviewAxis).values(
+      axisConfig
+        .filter((a) => catBySlug.has(a.cat))
+        .map((a) => ({
+          categoryId: catBySlug.get(a.cat)!,
+          scope: a.scope,
+          axisKey: a.axisKey,
+          labelEs: a.label,
+          sortOrder: a.sort,
+        })),
+    );
+
     console.log('Sembrando versiones de política (Ley 1581)...');
     const effectiveFrom = new Date('2026-01-01T00:00:00-05:00');
     await db.insert(s.policyVersion).values(
@@ -334,6 +420,122 @@ async function main() {
         price: s.service.basePrice,
       });
 
+    console.log('Sembrando platos, combos y sus reseñas...');
+    const svcBySlug = new Map(services.map((x) => [x.slug, x]));
+    const mamona = svcBySlug.get('mamona-a-la-llanera')!;
+    const productSpecs = [
+      {
+        name: 'Mamona llanera (porción)',
+        desc: 'Ternera asada a la llanera, corte tradicional.',
+        price: 3800000,
+        combo: false,
+        rating: '4.70',
+        reviews: 2,
+      },
+      {
+        name: 'Hayacas llaneras',
+        desc: 'Bollo de maíz relleno, envuelto en hoja.',
+        price: 1500000,
+        combo: false,
+        rating: '4.40',
+        reviews: 1,
+      },
+      {
+        name: 'Pan de arroz',
+        desc: 'Crocante tradicional del Llano.',
+        price: 600000,
+        combo: false,
+        rating: '4.80',
+        reviews: 1,
+      },
+      {
+        name: 'Combo llanero para dos',
+        desc: 'Mamona, hayaca, pan de arroz y bebida.',
+        price: 6900000,
+        combo: true,
+        rating: '4.60',
+        reviews: 1,
+      },
+    ];
+    const products = await db
+      .insert(s.product)
+      .values(
+        productSpecs.map((p, i) => ({
+          serviceId: mamona.id,
+          organizationId: mamona.org,
+          name: p.name,
+          description: p.desc,
+          price: p.price,
+          isCombo: p.combo,
+          sortOrder: i,
+          avgRating: p.rating,
+          reviewCount: p.reviews,
+        })),
+      )
+      .returning({ id: s.product.id });
+
+    const reviewers = [accounts[1]!.id, accounts[2]!.id, accounts[3]!.id];
+    const productReviewSpecs = [
+      {
+        productIdx: 0,
+        author: 0,
+        comment: 'La mamona es jugosa y bien asada, alcanza para compartir.',
+        flavor: '5.0',
+        portion: '4.5',
+        value: '4.0',
+      },
+      {
+        productIdx: 0,
+        author: 1,
+        comment: 'Muy buen sabor; la porción se queda algo corta para dos.',
+        flavor: '4.5',
+        portion: '3.5',
+        value: '4.0',
+      },
+      {
+        productIdx: 1,
+        author: 2,
+        comment: 'Las hayacas riquísimas, bien tradicionales.',
+        flavor: '4.5',
+        portion: '4.0',
+        value: '4.5',
+      },
+      {
+        productIdx: 2,
+        author: 0,
+        comment: 'El pan de arroz, un vicio: crocante y fresco.',
+        flavor: '5.0',
+        portion: '4.5',
+        value: '5.0',
+      },
+      {
+        productIdx: 3,
+        author: 1,
+        comment: 'El combo rinde y sale a buen precio.',
+        flavor: '4.5',
+        portion: '5.0',
+        value: '4.5',
+      },
+    ];
+    for (const spec of productReviewSpecs) {
+      const prod = products[spec.productIdx]!;
+      const pr = await db
+        .insert(s.productReview)
+        .values({
+          productId: prod.id,
+          serviceId: mamona.id,
+          organizationId: mamona.org,
+          authorAccountId: reviewers[spec.author]!,
+          comment: spec.comment,
+        })
+        .returning({ id: s.productReview.id });
+      await db.insert(s.productReviewAxis).values([
+        { reviewId: pr[0]!.id, axisKey: 'flavor', value: spec.flavor },
+        { reviewId: pr[0]!.id, axisKey: 'portion', value: spec.portion },
+        { reviewId: pr[0]!.id, axisKey: 'product_value', value: spec.value },
+      ]);
+    }
+
     console.log('Sembrando recursos...');
     for (const o of orgs) {
       await db.insert(s.resource).values([
@@ -464,7 +666,32 @@ async function main() {
         { reviewId, kind: 'accessibility', value: '3.5' },
         { reviewId, kind: 'value_for_money', value: '4.0' },
       ]);
+      // Ejes propios de gastronomía: limpieza e instagrameable.
+      if (serviceRows[i]!.cat === 'gastronomia') {
+        await db.insert(s.reviewAxis).values([
+          { reviewId, kind: 'cleanliness', value: '4.5' },
+          { reviewId, kind: 'instagrammability', value: i === 0 ? '5.0' : '4.0' },
+        ]);
+      }
     }
+
+    // Reserva completada de Carlos en la mamona, SIN reseña: habilita escribir
+    // una opinión de local desde la app (la cuenta demo del shim es Carlos).
+    const mamonaSvc = services[0]!;
+    await db.insert(s.booking).values({
+      code: 'DL-2001',
+      organizationId: mamonaSvc.org,
+      serviceId: mamonaSvc.id,
+      clientAccountId: accounts[2]!.id,
+      status: 'completed',
+      startsAt: new Date(Date.now() - 2 * 86400000),
+      endsAt: new Date(Date.now() - 2 * 86400000 + 7200000),
+      participants: 2,
+      unitPrice: (mamonaSvc.price ?? 0) as number,
+      subtotal: (mamonaSvc.price ?? 0) as number,
+      totalAmount: (mamonaSvc.price ?? 0) as number,
+      completedAt: new Date(Date.now() - 2 * 86400000 + 7200000),
+    });
 
     // --- Verificación de cuadre del ledger (requisito de §6) -----------------
     console.log('Verificando cuadre del ledger...');

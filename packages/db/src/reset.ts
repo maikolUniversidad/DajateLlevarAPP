@@ -1,3 +1,4 @@
+import './load-env.js';
 import postgres from 'postgres';
 
 /** Borra el esquema público y lo recrea vacío. Solo para desarrollo. */

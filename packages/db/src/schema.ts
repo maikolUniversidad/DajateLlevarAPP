@@ -67,6 +67,8 @@ export const reviewAxisKind = pgEnum('review_axis_kind', [
   'punctuality',
   'accessibility',
   'value_for_money',
+  'cleanliness',
+  'instagrammability',
 ]);
 export const ledgerSide = pgEnum('ledger_side', ['debit', 'credit']);
 export const ledgerAccount = pgEnum('ledger_account', [
@@ -377,6 +379,62 @@ export const reviewAxis = pgTable('review_axis', {
   kind: reviewAxisKind('kind').notNull(),
   value: numeric('value', { precision: 3, scale: 1 }).notNull(),
   note: text('note'),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+// Config de ejes de reseña por categoría (§ multi-rubro). scope 'venue' | 'product'.
+export const categoryReviewAxis = pgTable('category_review_axis', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  categoryId: uuid('category_id').notNull(),
+  scope: varchar('scope', { length: 10 }).notNull(),
+  axisKey: varchar('axis_key', { length: 40 }).notNull(),
+  labelEs: varchar('label_es', { length: 60 }).notNull(),
+  valueScale: varchar('value_scale', { length: 10 }).notNull().default('1_5'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: ts('created_at').notNull().defaultNow(),
+});
+
+// Producto (plato/combo) dentro de un servicio, con métricas agregadas.
+export const product = pgTable('product', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  serviceId: uuid('service_id').notNull(),
+  organizationId: uuid('organization_id').notNull(),
+  name: varchar('name', { length: 140 }).notNull(),
+  description: text('description'),
+  price: bigint('price', { mode: 'number' }),
+  currency: char('currency', { length: 3 }).notNull().default('COP'),
+  imageUrl: text('image_url'),
+  isCombo: boolean('is_combo').notNull().default(false),
+  isActive: boolean('is_active').notNull().default(true),
+  sortOrder: integer('sort_order').notNull().default(0),
+  avgRating: numeric('avg_rating', { precision: 3, scale: 2 }),
+  reviewCount: integer('review_count').notNull().default(0),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+  deletedAt: ts('deleted_at'),
+});
+
+// Reseña de un producto (no atada a reserva). Una por persona y producto.
+export const productReview = pgTable('product_review', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  productId: uuid('product_id').notNull(),
+  serviceId: uuid('service_id').notNull(),
+  organizationId: uuid('organization_id').notNull(),
+  authorAccountId: uuid('author_account_id').notNull(),
+  status: reviewStatus('status').notNull().default('published'),
+  comment: text('comment'),
+  helpfulCount: integer('helpful_count').notNull().default(0),
+  createdAt: ts('created_at').notNull().defaultNow(),
+  updatedAt: ts('updated_at').notNull().defaultNow(),
+});
+
+// Ejes de la reseña de producto. axis_key libre (sabor, portion, product_value…).
+export const productReviewAxis = pgTable('product_review_axis', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  reviewId: uuid('review_id').notNull(),
+  axisKey: varchar('axis_key', { length: 40 }).notNull(),
+  value: numeric('value', { precision: 3, scale: 1 }).notNull(),
   createdAt: ts('created_at').notNull().defaultNow(),
 });
 
