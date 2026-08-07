@@ -11,6 +11,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@dejatellevar/ai": "workspace:^",
     "@dejatellevar/contracts": "workspace:*",
     "@dejatellevar/core": "workspace:*",
     "@dejatellevar/db": "workspace:*",

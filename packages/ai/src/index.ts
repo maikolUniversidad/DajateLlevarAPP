@@ -156,6 +156,8 @@ export function createLLMProvider(options: CreateLLMProviderOptions = {}): LLMPr
   };
 }
 
+export { createContentAnalyzer } from './content-analyzer.js';
+
 let cached: LLMProvider | null = null;
 
 /**

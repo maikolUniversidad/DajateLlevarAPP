@@ -41,6 +41,7 @@ const nextConfig = {
     '@dejatellevar/db',
     '@dejatellevar/contracts',
     '@dejatellevar/client',
+    '@dejatellevar/ai',
   ],
   // postgres-js y drizzle corren solo en el servidor (Next 15: clave de nivel superior).
   serverExternalPackages: ['postgres', 'drizzle-orm'],

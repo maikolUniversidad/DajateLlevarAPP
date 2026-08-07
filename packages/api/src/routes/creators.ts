@@ -1,5 +1,7 @@
+import { createContentAnalyzer } from '@dejatellevar/ai';
 import { RegisterCreatorSchema } from '@dejatellevar/contracts';
 import type {
+  ContentAnalyzer,
   CreatorContentInsight,
   CreatorContentItem,
   CreatorProfile,
@@ -125,11 +127,17 @@ export function creatorRoutes(deps: ApiDeps) {
   const policies = makePolicyVersionRepository(db);
   const consents = makeConsentRepository(db);
   const events = makeEventPublisher(db);
-  // Adaptadores STUB del scraping/transcripción/clasificación. Se reemplazan por
-  // los reales vía inyección sin tocar el dominio (regla de oro de portabilidad).
+  // Scraping y transcripción siguen en STUB (son integraciones externas aparte).
   const scraper = makeStubContentScraper();
   const transcriber = makeStubTranscriber();
-  const analyzer = makeStubContentAnalyzer();
+  // CLASIFICACIÓN con IA REAL (DeepSeek/OpenAI vía @dejatellevar/ai). Si no hay
+  // clave configurada en el entorno, cae al stub para no romper el flujo.
+  let analyzer: ContentAnalyzer;
+  try {
+    analyzer = createContentAnalyzer();
+  } catch {
+    analyzer = makeStubContentAnalyzer();
+  }
 
   app.use('*', requireAuth);
 

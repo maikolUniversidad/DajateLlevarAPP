@@ -199,6 +199,9 @@ importers:
 
   packages/api:
     dependencies:
+      '@dejatellevar/ai':
+        specifier: workspace:^
+        version: link:../ai
       '@dejatellevar/contracts':
         specifier: workspace:*
         version: link:../contracts
