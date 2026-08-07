@@ -1,4 +1,5 @@
 import { Stack } from 'expo-router';
+import { AppOfflineProvider } from '../lib/offline-provider';
 
 /**
  * Raíz de navegación. La ruta inicial es `index` (Splash), que enruta a
@@ -6,11 +7,13 @@ import { Stack } from 'expo-router';
  */
 export default function RootLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F6F5FA' } }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="onboarding" />
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)" />
-    </Stack>
+    <AppOfflineProvider>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F6F5FA' } }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+    </AppOfflineProvider>
   );
 }
