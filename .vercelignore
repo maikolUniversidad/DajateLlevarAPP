@@ -1,0 +1,9 @@
+# Defensa: nunca subir secretos ni artefactos al deploy por CLI.
+.env
+.env.*
+.vercel
+node_modules
+.next
+.turbo
+.expo
+coverage

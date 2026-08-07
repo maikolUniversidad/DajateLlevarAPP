@@ -42,3 +42,6 @@ test-results/
 
 # Drizzle
 packages/db/drizzle/meta/_journal_local.json
+
+# Vercel
+.vercel
