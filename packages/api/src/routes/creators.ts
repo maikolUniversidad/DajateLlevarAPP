@@ -25,6 +25,7 @@ import {
   makeStubTranscriber,
   systemClock,
 } from '@dejatellevar/db';
+import { createContentScraper } from '@dejatellevar/scraping';
 import { Hono } from 'hono';
 import type { ApiDeps, ApiEnv } from '../context.js';
 import { domainStatus, errorResponse } from '../errors.js';
@@ -128,8 +129,9 @@ export function creatorRoutes(deps: ApiDeps) {
   const policies = makePolicyVersionRepository(db);
   const consents = makeConsentRepository(db);
   const events = makeEventPublisher(db);
-  // Scraping sigue en STUB (raspar redes es una integración externa aparte).
-  const scraper = makeStubContentScraper();
+  // Scraping REAL de YouTube (feed RSS público del canal). Las demás redes usan el
+  // stub hasta conectar un proveedor con credenciales (API oficial / servicio de pago).
+  const scraper = createContentScraper({ fallback: makeStubContentScraper() });
   // TRANSCRIPCIÓN con Whisper de OpenAI. Sin OPENAI_API_KEY, cae al stub.
   let transcriber: TranscriptionProvider;
   try {

@@ -15,6 +15,7 @@
     "@dejatellevar/contracts": "workspace:*",
     "@dejatellevar/core": "workspace:*",
     "@dejatellevar/db": "workspace:*",
+    "@dejatellevar/scraping": "workspace:^",
     "drizzle-orm": "0.38.3",
     "hono": "4.6.16",
     "zod": "3.24.1"
