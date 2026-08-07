@@ -1,3 +1,4 @@
+import './load-env.js';
 import { sql as dsql } from 'drizzle-orm';
 import { createDbClient } from './client.js';
 import * as s from './schema.js';
