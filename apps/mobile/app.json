@@ -7,11 +7,43 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "backgroundColor": "#F6F5FA",
+    "primaryColor": "#7C3AED",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2E2A5E"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dejatellevar.app",
+      "buildNumber": "1",
+      "config": { "usesNonExemptEncryption": false },
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleDisplayName": "DéjateLlevar"
+      }
+    },
+    "android": {
+      "package": "com.dejatellevar.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#2E2A5E"
+      },
+      "permissions": []
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
     "plugins": ["expo-router"],
-    "ios": { "supportsTablet": true },
-    "android": { "package": "com.dejatellevar.app" },
+    "runtimeVersion": { "policy": "appVersion" },
     "extra": {
-      "apiUrl": "http://localhost:3000/api"
+      "apiUrl": "https://dajate-llevar-app.vercel.app/api",
+      "eas": {}
     }
   }
 }

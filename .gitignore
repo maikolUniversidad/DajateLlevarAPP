@@ -45,3 +45,11 @@ packages/db/drizzle/meta/_journal_local.json
 
 # Vercel
 .vercel
+
+# Publicación móvil — NUNCA subir credenciales de firma
+apps/mobile/google-play-service-account.json
+apps/mobile/*.keystore
+apps/mobile/*.p8
+apps/mobile/*.p12
+apps/mobile/*.mobileprovision
+apps/mobile/credentials.json

@@ -40,6 +40,23 @@ proveedor. Solo TypeScript, Zod y sus tipos. Para hablar con el exterior define 
 - API con **Hono**, montada en Next en `app/api/[[...route]]/route.ts`.
 - Next con `output: "standalone"` desde el día uno.
 
+## Mandato multiplataforma: web + iOS + Android (INNEGOCIABLE)
+
+DéjateLlevar se publica en **web (Vercel)**, **Android (Google Play)** e **iOS
+(App Store)**. Toda funcionalidad nueva debe quedar disponible en las tres, o dejar el
+camino trazado para ello. Cómo se cumple sin duplicar lógica:
+
+- **La lógica de negocio nunca vive en una app.** Vive en `packages/core`,
+  `packages/contracts` y la API (Hono). Web y móvil solo consumen la API con el mismo
+  cliente tipado. Si escribes una regla en un componente, está en el lugar equivocado.
+- **`apps/mobile` (Expo + expo-router)** es la app nativa. Se compila y publica con **EAS**
+  (`eas.json`, `apps/mobile/app.json`). Guía completa en `apps/mobile/PUBLISHING.md`.
+- **Cada endpoint o contrato nuevo** debe poder llamarse igual desde la web y desde el
+  móvil. Nada de acoplar respuestas a detalles de un solo cliente.
+- **Identificadores de tienda:** `com.dejatellevar.app` (iOS y Android). No cambiarlos.
+- Al terminar una feature, pregúntate: ¿funciona en la web desplegada Y en un build de EAS?
+  Si el móvil aún no tiene la pantalla, al menos la API/contrato deben estar listos para él.
+
 ## Estructura
 
 ```
