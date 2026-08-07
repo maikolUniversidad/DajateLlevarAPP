@@ -7,6 +7,18 @@ import { errorResponse } from './errors.js';
 /** Nombre de la cookie de sesión (token del proveedor de auth, httpOnly). */
 export const SESSION_COOKIE = 'dl_session';
 
+/** Prefijo de token del shim de desarrollo: `dev-account:<uuid>`. */
+export const DEV_TOKEN_PREFIX = 'dev-account:';
+
+/**
+ * Puente de identidad SOLO para desarrollo. Habilitado únicamente si
+ * ALLOW_DEV_AUTH === 'true' y NODE_ENV !== 'production'. Permite actuar como una
+ * cuenta sembrada sin Supabase. NUNCA debe activarse en producción.
+ */
+export function devAuthEnabled(): boolean {
+  return process.env.ALLOW_DEV_AUTH === 'true' && process.env.NODE_ENV !== 'production';
+}
+
 /**
  * Middlewares transversales (§8). Simples y sin estado persistente en memoria
  * salvo el rate-limit y la idempotencia de demostración (en producción irían a
@@ -34,14 +46,20 @@ export function authContext(deps: ApiDeps): MiddlewareHandler<ApiEnv> {
     const bearer = c.req.header('authorization')?.replace(/^Bearer\s+/i, '');
     const token = bearer || getCookie(c, SESSION_COOKIE);
     if (token) {
-      try {
-        const verified = await deps.auth.verifyToken(token);
-        if (verified) {
-          const account = await accounts.findByExternalAuthId(verified.externalUserId);
-          accountId = account?.id ?? null;
+      if (devAuthEnabled() && token.startsWith(DEV_TOKEN_PREFIX)) {
+        // Solo desarrollo: el token porta directamente el id de cuenta.
+        const account = await accounts.findById(token.slice(DEV_TOKEN_PREFIX.length));
+        accountId = account?.id ?? null;
+      } else {
+        try {
+          const verified = await deps.auth.verifyToken(token);
+          if (verified) {
+            const account = await accounts.findByExternalAuthId(verified.externalUserId);
+            accountId = account?.id ?? null;
+          }
+        } catch {
+          accountId = null;
         }
-      } catch {
-        accountId = null;
       }
     }
     c.set('accountId', accountId);

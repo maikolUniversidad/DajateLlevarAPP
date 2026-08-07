@@ -3,5 +3,7 @@ export * from './fidelity.js';
 export * from './accessibility.js';
 export * from './common.js';
 export * from './enums.js';
+export * from './category.js';
+export * from './review.js';
 export * from './service.js';
 export * from './auth.js';

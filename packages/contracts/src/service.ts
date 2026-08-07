@@ -10,6 +10,7 @@ import {
 } from './enums.js';
 import { FidelityScoreSchema } from './fidelity.js';
 import { MoneySchema } from './money.js';
+import { AxisDefSchema, AxisRatingSchema, ProductSchema, RatingSummarySchema } from './review.js';
 
 /** Representación de un servicio expuesta por la API (§8.1). */
 export const ServiceSchema = z.object({
@@ -31,6 +32,8 @@ export const ServiceSchema = z.object({
   location_mode: LocationMode,
   city: z.string().nullable(),
   department: z.string().nullable(),
+  latitude: z.number().nullable(),
+  longitude: z.number().nullable(),
   cancellation_policy: CancellationPolicy,
   risk_category: RiskCategory,
   requires_waiver: z.boolean(),
@@ -41,6 +44,22 @@ export const ServiceSchema = z.object({
   published_at: z.string().datetime().nullable(),
 });
 export type Service = z.infer<typeof ServiceSchema>;
+
+/**
+ * Detalle de un servicio/local: GET /v1/services/:id. Enriquece al servicio con
+ * los datos de la ficha: precio por persona, si requiere reserva, resumen de
+ * calificación, ejes de local (con promedio), definición de ejes de plato y la
+ * lista de productos.
+ */
+export const ServiceDetailSchema = ServiceSchema.extend({
+  requires_reservation: z.boolean(),
+  avg_price_per_person: MoneySchema.nullable(),
+  rating_summary: RatingSummarySchema,
+  axes: z.array(AxisRatingSchema),
+  product_axes: z.array(AxisDefSchema),
+  products: z.array(ProductSchema),
+});
+export type ServiceDetail = z.infer<typeof ServiceDetailSchema>;
 
 /** Filtros de búsqueda de servicios: GET /v1/services (§8.1). */
 export const ServiceSearchSchema = z.object({

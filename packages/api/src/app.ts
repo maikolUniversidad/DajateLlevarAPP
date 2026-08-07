@@ -1,10 +1,13 @@
 import { Hono } from 'hono';
 import type { ApiDeps, ApiEnv } from './context.js';
 import { onError } from './errors.js';
-import { authContext, idempotency, rateLimit, requestId } from './middleware.js';
+import { authContext, devAuthEnabled, idempotency, rateLimit, requestId } from './middleware.js';
 import { openApiDocument } from './openapi.js';
 import { authRoutes } from './routes/auth.js';
+import { categoriesRoutes } from './routes/categories.js';
+import { devRoutes } from './routes/dev.js';
 import { meRoutes } from './routes/me.js';
+import { productsRoutes } from './routes/products.js';
 import { servicesRoutes } from './routes/services.js';
 
 /**
@@ -26,7 +29,10 @@ export function createApiApp(deps: ApiDeps) {
 
   app.route('/v1/auth', authRoutes(deps));
   app.route('/v1/me', meRoutes(deps));
+  app.route('/v1/categories', categoriesRoutes(deps));
   app.route('/v1/services', servicesRoutes(deps));
+  app.route('/v1/products', productsRoutes(deps));
+  if (devAuthEnabled()) app.route('/v1/dev', devRoutes(deps));
 
   app.notFound((c) =>
     c.json({ error: { code: 'NOT_FOUND', message: 'Recurso no encontrado' } }, 404),
