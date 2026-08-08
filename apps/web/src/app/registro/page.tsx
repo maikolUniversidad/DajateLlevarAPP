@@ -50,7 +50,7 @@ export default function RegistroPage() {
       }
       setDone({ needsVerification: !!data.needs_email_verification });
       if (!data.needs_email_verification) {
-        router.push('/mi/privacidad');
+        router.push('/descubrir');
       }
     } catch {
       setError('Error de red. Intenta de nuevo.');

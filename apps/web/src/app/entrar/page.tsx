@@ -28,7 +28,7 @@ export default function EntrarPage() {
         setError(data?.error?.message ?? 'No pudimos iniciar sesión');
         return;
       }
-      router.push('/mi/privacidad');
+      router.push('/descubrir');
       router.refresh();
     } catch {
       setError('Error de red. Intenta de nuevo.');
