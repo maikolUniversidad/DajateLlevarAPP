@@ -12,7 +12,7 @@ const MODALITY_LABEL: Record<string, string> = {
 export function ServiceCard({ service }: { service: Service }) {
   return (
     <Link
-      href={`/s/${service.organization_id}/${service.slug}`}
+      href={`/servicio/${service.id}`}
       className="flex flex-col gap-3 rounded-md border border-border bg-surface p-4 transition-colors hover:border-border-strong"
     >
       <div className="flex items-start justify-between gap-2">

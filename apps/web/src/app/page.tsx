@@ -58,6 +58,13 @@ export default async function HomePage() {
               Buscar
             </button>
           </form>
+
+          <Link
+            href="/descubrir"
+            className="mt-4 inline-flex items-center gap-1 font-body text-sm font-medium text-lila hover:underline"
+          >
+            O explóralo por destino, mapa y swipe →
+          </Link>
         </div>
       </section>
 
