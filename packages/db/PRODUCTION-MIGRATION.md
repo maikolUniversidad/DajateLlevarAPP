@@ -93,8 +93,9 @@ Migraciones resultantes tras el merge: `0000`…`0017` (main) + `0018_org_rls` +
 
 ## Fase C — Datos de configuración de ejes por categoría
 
-Producción no corre `pnpm db:seed`. Inserta la config de forma **idempotente**
-(ajusta los `slug` a las categorías reales de producción):
+Producción no corre `pnpm db:seed`. Corre el script idempotente
+**`packages/db/scripts/prod-category-axes.sql`** en el editor SQL de Supabase
+(o vía `psql`). Su contenido (ajusta los `slug` si difieren en producción):
 
 ```sql
 INSERT INTO category_review_axis (category_id, scope, axis_key, label_es, sort_order)
